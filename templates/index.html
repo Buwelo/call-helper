@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+          --color-clifford: #da373d;
+        }
+    </style>
+    <title>Document</title>
+</head>
+<body class="p-4">
+    <div class="space-y-4 grid gap-4 justify-items-center">
+		<audio controls class="w-full" id="audioPlayer">
+            <source src="{{ url_for('static', filename='harvard.wav') }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here">
+        <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Enter longer text here"></textarea>
+  
+    </div>
+   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // play audio and disable controls
+        const audioPlayer = document.getElementById('audioPlayer');
+        
+        if (audioPlayer) {
+            audioPlayer.addEventListener('play', () => {
+                audioPlayer.controls = false;
+            });
+    
+            // audioPlayer.addEventListener('pause', () => {
+            //     audioPlayer.controls = true;
+            // });
+    
+            audioPlayer.addEventListener('ended', () => {
+                audioPlayer.controls = true;
+            });
+        } else {
+            console.error('Audio player element not found');
+        }
+    
+        console.log('DOM fully loaded and parsed');
+        
+        // read file contents
+        const fileInput = document.getElementById('fileInput');
+    });
+   </script>
+</body>
+</html>

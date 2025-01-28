@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+	// play audio and disable controls
     const audioPlayer = document.getElementById('audioPlayer');
     
     if (audioPlayer) {
@@ -6,9 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
             audioPlayer.controls = false;
         });
 
-        audioPlayer.addEventListener('pause', () => {
-            audioPlayer.controls = true;
-        });
+        // audioPlayer.addEventListener('pause', () => {
+        //     audioPlayer.controls = true;
+        // });
 
         audioPlayer.addEventListener('ended', () => {
             audioPlayer.controls = true;
@@ -17,5 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Audio player element not found');
     }
 
-    console.log('DOM fully loaded and parsed');
+	console.log('DOM fully loaded and parsed');
+	
+	// read file contents
+	const fileInput = document.getElementById('fileInput');
 });
