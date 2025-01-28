@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="./index.js"></script>
+    <style type="text/tailwindcss">
+        @theme {
+          --color-clifford: #da373d;
+        }
+    </style>
+    <title>Document</title>
+</head>
+<body class="p-4">
+    <div class="space-y-4 grid gap-4 justify-items-center">
+		<audio controls class="w-full" id="audioPlayer">
+            <source src="/audio/harvard.wav" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here">
+        <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Enter longer text here"></textarea>
+  
+    </div>
+   
+</body>
+</html>
