@@ -14,10 +14,10 @@
 <body class="p-4">
     <div class="space-y-4 grid gap-4 justify-items-center">
 		<audio controls class="w-full" id="audioPlayer">
-            <source src="{{ url_for('static', filename='harvard.wav') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='call_with_mark.m4a') }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here">
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here" value={{}}>
         <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Enter longer text here"></textarea>
   
     </div>
@@ -25,6 +25,19 @@
     document.addEventListener('DOMContentLoaded', () => {
         // play audio and disable controls
         const audioPlayer = document.getElementById('audioPlayer');
+        const currentTime = audioPlayer.currentTime;
+
+        const formatTime = (time) => {
+            const hours = Math.floor(time / 3600);
+            const minutes = Math.floor((time % 3600) / 60);
+            const seconds = Math.floor(time % 60);
+            return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+        };
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            const formattedTime = formatTime(audioPlayer.currentTime);
+            console.log(formattedTime);
+        });
         
         if (audioPlayer) {
             audioPlayer.addEventListener('play', () => {
