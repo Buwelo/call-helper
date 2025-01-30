@@ -39,8 +39,9 @@ def readSrtFile(filename):
         elapsed_time = end_time_obj - start_time_obj
         
         # Display subtitle text after elapsed time
-        print(f"Subtitle Text: {subtitle['text']}")
-        print(f"Elapsed Time: {elapsed_time}")
+        # print(f"Subtitle Text: {subtitle['text']}")
+        # print(f"Elapsed Time: {elapsed_time}")
+        yield f"data: {subtitle['text']}\n\n"
         time.sleep(elapsed_time.total_seconds())
 
-readSrtFile('./files/call_with_mark.srt')
+# readSrtFile('./files/call_with_mark.srt')

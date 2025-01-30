@@ -17,7 +17,7 @@
             <source src="{{ url_for('static', filename='call_with_mark.m4a') }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here" value={{}}>
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here" >
         <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Enter longer text here"></textarea>
   
     </div>
@@ -26,6 +26,15 @@
         // play audio and disable controls
         const audioPlayer = document.getElementById('audioPlayer');
         const currentTime = audioPlayer.currentTime;
+
+        const transcript = document.getElementById('transcript');
+
+        const eventSource = new EventSource('/stream');
+        eventSource.onmessage= function(event){
+            console.log(event.data)
+            transcript.value = event.data
+        }
+
 
         const formatTime = (time) => {
             const hours = Math.floor(time / 3600);
