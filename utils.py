@@ -1,47 +1,99 @@
-from datetime import datetime, timedelta
+# utils.py
+from datetime import datetime
 import time
+import logging
+import json
 
-def readSrtFile(filename):
-    srt_file = open(filename, 'r')
-    lines = srt_file.readlines()
-    srt_file.close()
-    
-    # parse file into subtitle dictionary
-    subtitles = []
-    
-    for i in range(0, len(lines), 4):
-        # extract subtitle number
-        subtitle_number = lines[i].split()
-        
-        # extract time_range 
-        time_range = lines[i + 1].strip()
-        
-        # extract subtitle text
-        subtitle_text = lines[i + 2].strip()
-        
-        subtitle = {
-            'time_range': time_range,
-            'text': subtitle_text
-        }
-        
-        subtitles.append(subtitle)
-    
-    # Start time
-    start_time = datetime.now()
-    
+logger = logging.getLogger(__name__)
+
+def parse_time(time_str):
+    """Convert SRT timestamp to seconds"""
+    hours, minutes, seconds = time_str.replace(',', '.').split(':')
+    return float(hours) * 3600 + float(minutes) * 60 + float(seconds)
+
+def find_subtitle_for_time(subtitles, current_time):
+    """Find the subtitle that matches the current time"""
     for subtitle in subtitles:
-        # Parse time range
-        start_time_str, end_time_str = subtitle['time_range'].split(' --> ')
-        start_time_obj = datetime.strptime(start_time_str, '%H:%M:%S,%f')
-        end_time_obj = datetime.strptime(end_time_str, '%H:%M:%S,%f')
-        
-        # Calculate elapsed time
-        elapsed_time = end_time_obj - start_time_obj
-        
-        # Display subtitle text after elapsed time
-        # print(f"Subtitle Text: {subtitle['text']}")
-        # print(f"Elapsed Time: {elapsed_time}")
-        yield f"data: {subtitle['text']}\n\n"
-        time.sleep(elapsed_time.total_seconds())
+        if subtitle['start'] <= current_time <= subtitle['end']:
+            return subtitle
+    return None
 
-# readSrtFile('./files/call_with_mark.srt')
+def readSrtFile(filename, current_audio_time):
+    logger.info(f"Current audio time received: {current_audio_time}")
+    
+    try:
+        # Parse and cache subtitles
+        subtitles = []
+        with open(filename, 'r', encoding='utf-8') as srt_file:
+            lines = srt_file.readlines()
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            if not line:
+                i += 1
+                continue
+            
+            try:
+                # Parse subtitle number
+                subtitle_number = int(line)
+                time_line = lines[i + 1].strip()
+                text_lines = []
+                
+                # Get all text lines
+                i += 2
+                while i < len(lines) and lines[i].strip():
+                    text_lines.append(lines[i].strip())
+                    i += 1
+                
+                # Parse time range
+                start_time_str, end_time_str = time_line.split(' --> ')
+                start_time = parse_time(start_time_str)
+                end_time = parse_time(end_time_str)
+                
+                subtitles.append({
+                    'number': subtitle_number,
+                    'start': start_time,
+                    'end': end_time,
+                    'text': ' '.join(text_lines)
+                })
+                
+            except (ValueError, IndexError) as e:
+                logger.error(f"Error parsing subtitle at line {i}: {e}")
+                i += 1
+                continue
+            
+            i += 1
+        
+        # Track last sent subtitle to avoid duplicates
+        last_sent_text = None
+        
+        while True:
+            try:
+                # Find matching subtitle for current time
+                current_subtitle = find_subtitle_for_time(subtitles, float(current_audio_time))
+                
+                if current_subtitle and current_subtitle['text'] != last_sent_text:
+                    last_sent_text = current_subtitle['text']
+                    response_data = {
+                        'text': current_subtitle['text'],
+                        'start': current_subtitle['start'],
+                        'end': current_subtitle['end']
+                    }
+                    yield f"data: {json.dumps(response_data)}\n\n"
+                elif not current_subtitle and last_sent_text is not None:
+                    # Clear subtitle when no match is found
+                    last_sent_text = None
+                    yield f"data: {json.dumps({'text': '', 'start': 0, 'end': 0})}\n\n"
+                
+                time.sleep(0.1)  # Small delay to prevent excessive CPU usage
+                
+            except Exception as e:
+                logger.error(f"Error processing subtitle: {e}")
+                yield f"data: {json.dumps({'text': 'Error processing subtitle', 'start': 0, 'end': 0})}\n\n"
+                time.sleep(0.1)
+                
+    except Exception as e:
+        logger.error(f"Error reading SRT file: {e}")
+        yield f"data: {json.dumps({'text': 'Error reading subtitles', 'start': 0, 'end': 0})}\n\n"

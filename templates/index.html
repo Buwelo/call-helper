@@ -13,62 +13,121 @@
 </head>
 <body class="p-4">
     <div class="space-y-4 grid gap-4 justify-items-center">
-		<audio controls class="w-full" id="audioPlayer">
+        <audio controls class="w-full" id="audioPlayer">
             <source src="{{ url_for('static', filename='call_with_mark.m4a') }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Enter text here" >
-        <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Enter longer text here"></textarea>
-  
+        <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Current subtitle" readonly>
+        <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Full transcript"></textarea>
     </div>
-   <script>
+
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // play audio and disable controls
         const audioPlayer = document.getElementById('audioPlayer');
-        const currentTime = audioPlayer.currentTime;
-
         const transcript = document.getElementById('transcript');
-
-        const eventSource = new EventSource('/stream');
-        eventSource.onmessage= function(event){
-            console.log(event.data)
-            transcript.value = event.data
-        }
-
+        const timeDisplay = document.getElementById('time-display');
+        const editableTranscript = document.getElementById('editable-transcript');
+        let eventSource = null;
+        let lastTime = -1;
 
         const formatTime = (time) => {
             const hours = Math.floor(time / 3600);
             const minutes = Math.floor((time % 3600) / 60);
             const seconds = Math.floor(time % 60);
-            return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         };
 
-        audioPlayer.addEventListener('timeupdate', () => {
-            const formattedTime = formatTime(audioPlayer.currentTime);
-            console.log(formattedTime);
-        });
-        
-        if (audioPlayer) {
-            audioPlayer.addEventListener('play', () => {
-                audioPlayer.controls = false;
-            });
-    
-            // audioPlayer.addEventListener('pause', () => {
-            //     audioPlayer.controls = true;
-            // });
-    
-            audioPlayer.addEventListener('ended', () => {
-                audioPlayer.controls = true;
-            });
-        } else {
-            console.error('Audio player element not found');
+        function connectEventSource(currentTime) {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource(`/stream?currenttime=${currentTime}`);
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    transcript.value = data.text;
+                    
+                    // Only append to editable transcript if it's new text
+                    if (data.text && data.text !== transcript.value) {
+                        if (editableTranscript.value) {
+                            editableTranscript.value += '\n';
+                        }
+                        editableTranscript.value += `[${formatTime(data.start)}] ${data.text}`;
+                        editableTranscript.scrollTop = editableTranscript.scrollHeight;
+                    }
+                } catch (e) {
+                    console.error('Error parsing subtitle data:', e);
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('EventSource failed:', error);
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            };
         }
-    
-        console.log('DOM fully loaded and parsed');
-        
-        // read file contents
-        const fileInput = document.getElementById('fileInput');
+
+        // Update time display and check for subtitle updates
+        audioPlayer.addEventListener('timeupdate', () => {
+            const currentTime = audioPlayer.currentTime;
+            timeDisplay.textContent = formatTime(currentTime);
+            
+            // Only update if time has changed significantly (100ms)
+            if (Math.abs(currentTime - lastTime) >= 0.1) {
+                lastTime = currentTime;
+                if (!eventSource || eventSource.readyState !== EventSource.OPEN) {
+                    connectEventSource(currentTime);
+                } else {
+                    // Reconnect with new time
+                    connectEventSource(currentTime);
+                }
+            }
+        });
+
+        // Handle playback controls
+        audioPlayer.addEventListener('play', () => {
+            connectEventSource(audioPlayer.currentTime);
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        });
+
+        audioPlayer.addEventListener('seeking', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            transcript.value = '';  // Clear current subtitle while seeking
+        });
+
+        audioPlayer.addEventListener('seeked', () => {
+            connectEventSource(audioPlayer.currentTime);
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        });
     });
-   </script>
+    </script>
 </body>
 </html>
