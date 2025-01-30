@@ -51,12 +51,14 @@
                     transcript.value = data.text;
                     
                     // Only append to editable transcript if it's new text
-                    if (data.text && data.text !== transcript.value) {
+                    if (data.text && !editableTranscript.value.endsWith(data.text)) {
                         if (editableTranscript.value) {
                             editableTranscript.value += '\n';
                         }
                         editableTranscript.value += `[${formatTime(data.start)}] ${data.text}`;
-                        editableTranscript.scrollTop = editableTranscript.scrollHeight;
+                        console.log('data text  ',data.text);
+                        
+                        // editableTranscript.scrollTop = editableTranscript.scrollHeight;
                     }
                 } catch (e) {
                     console.error('Error parsing subtitle data:', e);
