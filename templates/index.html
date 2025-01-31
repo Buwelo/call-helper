@@ -52,13 +52,38 @@
                     
                     // Only append to editable transcript if it's new text
                     if (data.text && !editableTranscript.value.endsWith(data.text)) {
-                        if (editableTranscript.value) {
-                            editableTranscript.value += '\n';
-                        }
-                        editableTranscript.value += `[${formatTime(data.start)}] ${data.text}`;
-                        console.log('data text  ',data.text);
+                        // Store current cursor and scroll position
+                        const cursorPosition = editableTranscript.selectionStart;
+                        const cursorEnd = editableTranscript.selectionEnd;
+                        const scrollTop = editableTranscript.scrollTop;
                         
-                        // editableTranscript.scrollTop = editableTranscript.scrollHeight;
+                        // Get current content
+                        let newValue = editableTranscript.value;
+                        
+                        // Add newline if needed and append new text
+                        if (newValue) {
+                            newValue += '\n';
+                        }
+                        newValue += `[${formatTime(data.start)}] ${data.text}`;
+                        
+                        // Update the textarea
+                        editableTranscript.value = newValue;
+                        
+                        // If user was actively editing (cursor position not at end),
+                        // restore their position
+                        if (cursorPosition !== editableTranscript.value.length - data.text.length - 1) {
+                            editableTranscript.setSelectionRange(cursorPosition, cursorEnd);
+                            editableTranscript.scrollTop = scrollTop;
+                        } else {
+                            // If cursor was at end, keep it at end
+                            editableTranscript.setSelectionRange(newValue.length, newValue.length);
+                            // Optional: scroll to bottom only if user was already at bottom
+                            if (scrollTop + editableTranscript.clientHeight === editableTranscript.scrollHeight) {
+                                editableTranscript.scrollTop = editableTranscript.scrollHeight;
+                            }
+                        }
+                        
+                        console.log('data text ', data.text);
                     }
                 } catch (e) {
                     console.error('Error parsing subtitle data:', e);
