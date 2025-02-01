@@ -86,3 +86,11 @@ flask db upgrade
 
 ```bash
 flask run
+ ```
+### **4. Run seeder**:
+
+```bash
+flask shell
+from seeders.userSeeder import seed_users
+seed_users()
+ ```
