@@ -1,6 +1,6 @@
 from flask import Response, request
 from flask import Flask, render_template
-from utils import readSrtFile
+from utility.utils import readSrtFile
 import logging
 
 app = Flask(__name__)
