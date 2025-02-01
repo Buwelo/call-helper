@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <style type="text/tailwindcss">
-        @theme {
-          --color-clifford: #da373d;
-        }
+      @theme {
+        --color-clifford: #da373d;
+      }
     </style>
     <title>Document</title>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-</head>
-<body class="p-4">
-    <div class="space-y-4 grid gap-4 justify-items-center">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body class="p-4">
+    <div class="container">
+      <div class="space-y-4 grid gap-4 justify-items-center">
         <audio controls class="w-full" id="audioPlayer">
-            <source src="{{ url_for('static', filename='call_with_mark.m4a') }}" type="audio/mpeg">
-            Your browser does not support the audio element.
+          <source src="{{ url_for('static', filename='call_with_mark.m4a') }}" type="audio/mpeg" />
+          Your browser does not support the audio element.
         </audio>
         <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
-        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Current subtitle" readonly>
-        <textarea id="editable-transcript" class="w-full p-2 border rounded" rows="4" placeholder="Full transcript"></textarea>
+        <input type="text" id="transcript" class="w-full p-2 border rounded" placeholder="Current subtitle" readonly />
+        <textarea
+          id="editable-transcript"
+          class="w-full p-2 border rounded"
+          rows="4"
+          placeholder="Full transcript"
+        ></textarea>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>
