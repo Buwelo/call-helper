@@ -92,5 +92,7 @@ flask run
 ```bash
 flask shell
 from seeders.userSeeder import seed_users
+from seeders.transcriptSeeder import seed_transcripts
 seed_users()
+seed_transcripts()
  ```
