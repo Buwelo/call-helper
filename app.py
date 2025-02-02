@@ -4,6 +4,7 @@ from config.extensions import logging, db, login_manager
 from config import create_app
 from models import User
 from flask_login import login_required
+from controllers.transcriptionController import score_transcription
 import os
 from dotenv import load_dotenv
 
@@ -31,6 +32,11 @@ def stream():
     currenttime = request.args.get('currenttime', 0, type=float)  # Get currenttime from query params
     logging.info(f"currenttime: {currenttime}")
     return Response(readSrtFile('./files/call_with_mark.srt', currenttime), content_type='text/event-stream')
+
+@app.route('/score-transcript', methods=['POST'])
+@login_required
+def score_transcript():
+    return score_transcription()
 
 if __name__ == '__main__':
     with app.app_context():
