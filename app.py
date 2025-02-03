@@ -33,10 +33,6 @@ def stream():
     logging.info(f"currenttime: {currenttime}")
     return Response(readSrtFile('./files/call_with_mark.srt', currenttime), content_type='text/event-stream')
 
-@app.route('/score-transcript', methods=['POST'])
-@login_required
-def score_transcript():
-    return score_transcription()
 
 if __name__ == '__main__':
     with app.app_context():
