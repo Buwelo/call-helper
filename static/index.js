@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
     // Send updated transcript to server
     try {
-      const response = await fetch('/score-transcript', {
+      const response = await fetch('/transcription/score-transcription/1', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
