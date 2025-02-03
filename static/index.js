@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       eventSource.close();
     }
 
-    eventSource = new EventSource(`/stream?currenttime=${currentTime}`);
+    eventSource = new EventSource(`/transcription/stream?currenttime=${currentTime}`);
 
     eventSource.onmessage = function (event) {
       try {

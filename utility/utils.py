@@ -3,6 +3,8 @@ from datetime import datetime
 import time
 import logging
 import json
+from models.transcript import TranscriptTest
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +20,22 @@ def find_subtitle_for_time(subtitles, current_time):
             return subtitle
     return None
 
-def readSrtFile(filename=None, current_audio_time=0, db_transcript=None):
+def readSrtFile(filename=None, current_audio_time=0, id=None):
     logger.info(f"Current audio time received: {current_audio_time}")
     
     try:
         # Parse and cache subtitles
         subtitles = []
-        with open(filename, 'r', encoding='utf-8') as srt_file:
-            if filename is None:
-                lines = db_transcript.split('\n')
-            else:
+        
+        if id is not None:
+            # Fetch transcript from database based on id
+            # This is a placeholder - you need to implement the actual database query
+            db_transcript = TranscriptTest.query.filter_by(id=id).first().bad_transcript
+            lines = db_transcript.split('\n')
+        else:
+            # Use the default file if no id is provided
+            filename = './files/call_with_mark.srt'
+            with open(filename, 'r', encoding='utf-8') as srt_file:
                 lines = srt_file.readlines()
 
         
