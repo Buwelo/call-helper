@@ -18,14 +18,18 @@ def find_subtitle_for_time(subtitles, current_time):
             return subtitle
     return None
 
-def readSrtFile(filename, current_audio_time):
+def readSrtFile(filename=None, current_audio_time=0, db_transcript=None):
     logger.info(f"Current audio time received: {current_audio_time}")
     
     try:
         # Parse and cache subtitles
         subtitles = []
         with open(filename, 'r', encoding='utf-8') as srt_file:
-            lines = srt_file.readlines()
+            if filename is None:
+                lines = db_transcript.split('\n')
+            else:
+                lines = srt_file.readlines()
+
         
         i = 0
         while i < len(lines):
