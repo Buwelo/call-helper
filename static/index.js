@@ -124,10 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     if (!elements.editableTranscript.value.trim()) {
+      alert('Empty submission');
       console.error('Cannot submit empty transcript');
       return;
     }
     modal.show();
+
+    // Set loading message
+    elements.scoreModalBody.innerHTML = '<p class="text-base">Loading score...</p>';
 
     try {
       const response = await fetch('/transcription/score-transcription/1', {
@@ -139,15 +143,49 @@ document.addEventListener('DOMContentLoaded', () => {
           transcript: elements.editableTranscript.value,
         }),
       });
-      if (response.status === 200) { 
-        const data = await response.json()
 
-      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+
+      if (!data.gpt4_score) {
+        throw new Error('No score data received from the server');
+      }
+
+      const scoreLines = data.gpt4_score.split('\n');
+
+      const createScoreSection = (title, scoreIndex, explanationIndex) => {
+        const scoreLine = scoreLines[scoreIndex] || '';
+        const score = scoreLine.split(':')[1]?.trim() || 'N/A';
+        const explanation = scoreLines[explanationIndex] || 'No explanation provided';
+
+        return `
+        <div>
+          <h3 class="text-lg font-semibold">${title}</h3>
+          <p>Score: ${score}</p>
+          <p>${explanation}</p>
+        </div>
+      `;
+      };
+
+      const htmlContent = `
+      <div class="space-y-4">
+        ${createScoreSection('Audio Cues', 0, 1)}
+        ${createScoreSection('Corrections (Words)', 3, 4)}
+        ${createScoreSection('Punctuation', 6, 7)}
+        ${createScoreSection('Grammar', 9, 10)}
+      </div>
+    `;
+
+      elements.scoreModalBody.innerHTML = htmlContent;
     } catch (error) {
       console.error('Error submitting transcript:', error);
+      elements.scoreModalBody.innerHTML = `
+      <p class="text-red-500">Error: ${error.message}</p>
+      <p>Please try again or contact support if the problem persists.</p>
+    `;
     }
   };
 

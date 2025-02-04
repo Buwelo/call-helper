@@ -40,6 +40,7 @@ Given the user's transcript and the correct transcript, compare the two transcri
 - Grammar, e.g., AI produces "The rain fell." in transcript, user corrects it to "The rain fell down."
 
 Provide a score out of 100 and a brief explanation for each criterion.
+Provide an overall score for the entire test.
 """
 
     try:
