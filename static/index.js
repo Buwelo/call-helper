@@ -1,32 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM fully loaded and parsed');
+  // DOM Elements
+  const elements = {
+    audioPlayer: document.getElementById('audioPlayer'),
+    transcript: document.getElementById('transcript'),
+    timeDisplay: document.getElementById('time-display'),
+    editableTranscript: document.getElementById('editable-transcript'),
+    submitButton: document.getElementById('submit'),
+    scoreModalBody: document.getElementById('score-modal-body'),
+  };
 
-  const audioPlayer = document.getElementById('audioPlayer');
-  const transcript = document.getElementById('transcript');
-  const timeDisplay = document.getElementById('time-display');
-  const editableTranscript = document.getElementById('editable-transcript');
+  // State management
+  const state = {
+    eventSource: null,
+    lastTime: -1,
+    transcriptHistory: [], // Store transcript segments
+  };
 
-  // play audio and disable controls
-
-  if (audioPlayer) {
-    audioPlayer.addEventListener('play', () => {
-      audioPlayer.controls = false;
-    });
-
-    // audioPlayer.addEventListener('pause', () => {
-    //     audioPlayer.controls = true;
-    // });
-
-    audioPlayer.addEventListener('ended', () => {
-      audioPlayer.controls = true;
-    });
-  } else {
-    console.error('Audio player element not found');
-  }
-
-  let eventSource = null;
-  let lastTime = -1;
-
+  // Utility functions
   const formatTime = time => {
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
@@ -36,145 +26,207 @@ document.addEventListener('DOMContentLoaded', () => {
       .padStart(2, '0')}`;
   };
 
-  function connectEventSource(currentTime) {
-    if (eventSource) {
-      eventSource.close();
+  const updateTranscriptDisplay = data => {
+    if (!data.text) return;
+
+    // Add new segment to history if it's not already there
+    const newSegment = `[${formatTime(data.start)}] ${data.text}`;
+    if (!state.transcriptHistory.includes(newSegment)) {
+      state.transcriptHistory.push(newSegment);
+
+      // Update read-only transcript
+      elements.transcript.value = state.transcriptHistory.join('\n');
+
+      // Auto-scroll
+      elements.transcript.scrollTop = elements.transcript.scrollHeight;
+    }
+  };
+
+  const updateEditableTranscript = data => {
+    if (!data.text || elements.editableTranscript.value.endsWith(data.text)) return;
+
+    // Save current state
+    const cursorPosition = elements.editableTranscript.selectionStart;
+    const cursorEnd = elements.editableTranscript.selectionEnd;
+    const scrollTop = elements.editableTranscript.scrollTop;
+    const wasAtBottom =
+      scrollTop + elements.editableTranscript.clientHeight === elements.editableTranscript.scrollHeight;
+
+    // Update content
+    let newValue = elements.editableTranscript.value;
+    if (newValue) newValue += '\n';
+    newValue += data.text; // Removed timestamp, only adding the text
+
+    elements.editableTranscript.value = newValue;
+
+    // Restore cursor position or keep at end
+    if (cursorPosition !== elements.editableTranscript.value.length - data.text.length - 1) {
+      elements.editableTranscript.setSelectionRange(cursorPosition, cursorEnd);
+      elements.editableTranscript.scrollTop = scrollTop;
+    } else {
+      elements.editableTranscript.setSelectionRange(newValue.length, newValue.length);
+      if (wasAtBottom) {
+        elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
+      }
+    }
+  };
+
+  // Event Source Management
+  const connectEventSource = currentTime => {
+    if (state.eventSource) {
+      state.eventSource.close();
     }
 
-    eventSource = new EventSource(`/stream?currenttime=${currentTime}`);
+    state.eventSource = new EventSource(`/transcription/stream?currenttime=${currentTime}`);
 
-    eventSource.onmessage = function (event) {
+    state.eventSource.onmessage = event => {
       try {
         const data = JSON.parse(event.data);
-        transcript.value = data.text;
-
-        // Only append to editable transcript if it's new text
-        if (data.text && !editableTranscript.value.endsWith(data.text)) {
-          // Store current cursor and scroll position
-          const cursorPosition = editableTranscript.selectionStart;
-          const cursorEnd = editableTranscript.selectionEnd;
-          const scrollTop = editableTranscript.scrollTop;
-
-          // Get current content
-          let newValue = editableTranscript.value;
-
-          // Add newline if needed and append new text
-          if (newValue) {
-            newValue += '\n';
-          }
-          newValue += `[${formatTime(data.start)}] ${data.text}`;
-
-          // Update the textarea
-          editableTranscript.value = newValue;
-
-          // If user was actively editing (cursor position not at end),
-          // restore their position
-          if (cursorPosition !== editableTranscript.value.length - data.text.length - 1) {
-            editableTranscript.setSelectionRange(cursorPosition, cursorEnd);
-            editableTranscript.scrollTop = scrollTop;
-          } else {
-            // If cursor was at end, keep it at end
-            editableTranscript.setSelectionRange(newValue.length, newValue.length);
-            // Optional: scroll to bottom only if user was already at bottom
-            if (scrollTop + editableTranscript.clientHeight === editableTranscript.scrollHeight) {
-              editableTranscript.scrollTop = editableTranscript.scrollHeight;
-            }
-          }
-
-          console.log('data text ', data.text);
-        }
+        updateTranscriptDisplay(data);
+        updateEditableTranscript(data);
       } catch (e) {
         console.error('Error parsing subtitle data:', e);
       }
     };
 
-    eventSource.onerror = function (error) {
+    state.eventSource.onerror = error => {
       console.error('EventSource failed:', error);
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
+      if (state.eventSource) {
+        state.eventSource.close();
+        state.eventSource = null;
       }
     };
-  }
+  };
 
-  // Update time display and check for subtitle updates
-  audioPlayer.addEventListener('timeupdate', () => {
-    const currentTime = audioPlayer.currentTime;
-    timeDisplay.textContent = formatTime(currentTime);
+  // Audio Player Event Handlers
+  const handleTimeUpdate = () => {
+    const currentTime = elements.audioPlayer.currentTime;
+    elements.timeDisplay.textContent = formatTime(currentTime);
 
-    // Only update if time has changed significantly (100ms)
-    if (Math.abs(currentTime - lastTime) >= 0.1) {
-      lastTime = currentTime;
-      if (!eventSource || eventSource.readyState !== EventSource.OPEN) {
-        connectEventSource(currentTime);
-      } else {
-        // Reconnect with new time
-        connectEventSource(currentTime);
-      }
+    if (Math.abs(currentTime - state.lastTime) >= 0.1) {
+      state.lastTime = currentTime;
+      connectEventSource(currentTime);
     }
-  });
+  };
 
-  // Handle playback controls
-  audioPlayer.addEventListener('play', () => {
-    connectEventSource(audioPlayer.currentTime);
-  });
-
-  audioPlayer.addEventListener('pause', () => {
-    if (eventSource) {
-      eventSource.close();
-      eventSource = null;
+  const closeEventSource = () => {
+    if (state.eventSource) {
+      state.eventSource.close();
+      state.eventSource = null;
     }
-  });
+  };
 
-  audioPlayer.addEventListener('seeking', () => {
-    if (eventSource) {
-      eventSource.close();
-      eventSource = null;
+  const scoreModal = document.getElementById('score-results-modal');
+  const modal = new Modal(scoreModal);
+
+  // Submit Transcript
+  const submitTranscript = async e => {
+    e.preventDefault();
+
+    if (!elements.editableTranscript.value.trim()) {
+      alert('Empty submission');
+      console.error('Cannot submit empty transcript');
+      return;
     }
-    transcript.value = ''; // Clear current subtitle while seeking
-  });
+    modal.show();
 
-  audioPlayer.addEventListener('seeked', () => {
-    connectEventSource(audioPlayer.currentTime);
-  });
+    // Set loading message
+    elements.scoreModalBody.innerHTML = '<p class="text-base">Loading score...</p>';
 
-  audioPlayer.addEventListener('ended', () => {
-    if (eventSource) {
-      eventSource.close();
-      eventSource = null;
-    }
-  });
-
-  // Clean up on page unload
-  window.addEventListener('beforeunload', () => {
-    if (eventSource) {
-      eventSource.close();
-      eventSource = null;
-    }
-  });
-
-  // Handle transcript submission
-  const submitButton = document.getElementById('submit');
-    submitButton.addEventListener('click', async (e) => {
-      e.preventDefault()
-      const textAreaContent = document.getElementById('editable-transcript').value;
-      
-    // Send updated transcript to server
     try {
-      const response = await fetch('/score-transcript', {
+      const response = await fetch('/transcription/score-transcription/1', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            transcript: textAreaContent,
+          transcript: elements.editableTranscript.value,
         }),
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+
+      if (!data.gpt4_score) {
+        throw new Error('No score data received from the server');
+      }
+
+      const scoreLines = data.gpt4_score.split('\n');
+
+      const createScoreSection = (title, scoreIndex, explanationIndex) => {
+        const scoreLine = scoreLines[scoreIndex] || '';
+        const score = scoreLine.split(':')[1]?.trim() || 'N/A';
+        const explanation = scoreLines[explanationIndex] || 'No explanation provided';
+
+        return `
+        <div>
+          <h3 class="text-lg font-semibold">${title}</h3>
+          <p>Score: ${score}</p>
+          <p>${explanation}</p>
+        </div>
+      `;
+      };
+
+      const htmlContent = `
+      <div class="space-y-4">
+        ${createScoreSection('Audio Cues', 0, 1)}
+        ${createScoreSection('Corrections (Words)', 3, 4)}
+        ${createScoreSection('Punctuation', 6, 7)}
+        ${createScoreSection('Grammar', 9, 10)}
+      </div>
+    `;
+
+      elements.scoreModalBody.innerHTML = htmlContent;
     } catch (error) {
       console.error('Error submitting transcript:', error);
+      elements.scoreModalBody.innerHTML = `
+      <p class="text-red-500">Error: ${error.message}</p>
+      <p>Please try again or contact support if the problem persists.</p>
+    `;
     }
-  });
+  };
+
+  const closeModalButton = document.getElementById('close-modal-button');
+  if (closeModalButton) {
+    closeModalButton.addEventListener('click', () => {
+      modal.hide();
+    });
+  }
+
+  // Initialize Audio Player
+  if (elements.audioPlayer) {
+    // Audio player controls
+    elements.audioPlayer.addEventListener('play', () => {
+      elements.audioPlayer.controls = false;
+      connectEventSource(elements.audioPlayer.currentTime);
+    });
+
+    elements.audioPlayer.addEventListener('ended', () => {
+      elements.audioPlayer.controls = true;
+      closeEventSource();
+    });
+
+    // Playback event listeners
+    elements.audioPlayer.addEventListener('timeupdate', handleTimeUpdate);
+    elements.audioPlayer.addEventListener('pause', closeEventSource);
+    elements.audioPlayer.addEventListener('seeking', () => {
+      closeEventSource();
+      elements.transcript.value = '';
+      state.transcriptHistory = []; // Clear history when seeking
+    });
+    elements.audioPlayer.addEventListener('seeked', () => {
+      connectEventSource(elements.audioPlayer.currentTime);
+    });
+  } else {
+    console.error('Audio player element not found');
+  }
+
+  // Submit button event listener
+  elements.submitButton.addEventListener('click', submitTranscript);
+
+  // Cleanup
+  window.addEventListener('beforeunload', closeEventSource);
 });

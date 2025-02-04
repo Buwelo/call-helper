@@ -3,6 +3,7 @@ from flask import Flask
 from .config import config_dict
 from .extensions import db, login_manager, logger, migrate
 from routes.auth import auth
+from routes.transcript import transcription
 
 def create_app(config_name='development'):
     """Create and configure the app"""
@@ -23,5 +24,6 @@ def create_app(config_name='development'):
 
     # Register blueprints
     app.register_blueprint(auth, url_prefix='/auth')
+    app.register_blueprint(transcription, url_prefix='/transcription')
     logger.info(f'App started: {config_name}')
     return app

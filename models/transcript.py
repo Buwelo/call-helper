@@ -6,7 +6,10 @@ class TranscriptTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     good_transcript = db.Column(db.String(15000), nullable=False)  # Used to score test
     bad_transcript = db.Column(db.String(15000), nullable=False)  # Used to generate test
-
+    
+    def __repr__(self):
+        return f'<TranscriptTest {self.id}>'
+    
 class UserTranscript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
