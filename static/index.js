@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timeDisplay: document.getElementById('time-display'),
     editableTranscript: document.getElementById('editable-transcript'),
     submitButton: document.getElementById('submit'),
+    scoreModalBody: document.getElementById('score-modal-body'),
   };
 
   // State management
@@ -115,9 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const scoreModal = document.getElementById('score-results-modal');
+  const modal = new Modal(scoreModal);
+
   // Submit Transcript
   const submitTranscript = async e => {
     e.preventDefault();
+
+    if (!elements.editableTranscript.value.trim()) {
+      console.error('Cannot submit empty transcript');
+      return;
+    }
+    modal.show();
+
     try {
       const response = await fetch('/transcription/score-transcription/1', {
         method: 'POST',
@@ -128,6 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
           transcript: elements.editableTranscript.value,
         }),
       });
+      if (response.status === 200) { 
+        const data = await response.json()
+
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -135,6 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error submitting transcript:', error);
     }
   };
+
+  const closeModalButton = document.getElementById('close-modal-button');
+  if (closeModalButton) {
+    closeModalButton.addEventListener('click', () => {
+      modal.hide();
+    });
+  }
 
   // Initialize Audio Player
   if (elements.audioPlayer) {
