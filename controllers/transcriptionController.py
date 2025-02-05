@@ -44,7 +44,7 @@ Given the user's transcript and the correct transcript, compare the two transcri
 - Punctuation, e.g., AI produces "!" in transcript, user corrects it to "."
 
 Provide a score out of 100 and a brief explanation for each criterion.
-Provide an overall score for the entire test.
+Provide an overall percentage score for the entire test as eg. Overall Percentage Score = 50%.
 """
 
     try:
