@@ -1,5 +1,5 @@
 from config.extensions import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class TranscriptTest(db.Model):
@@ -13,8 +13,8 @@ class TranscriptTest(db.Model):
 class UserTranscript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    score = db.Column(db.JSON, nullable=True)  # Stores test scores in JSON format
+    score = db.Column(db.String(15000), nullable=False)  # Stores test scores in JSON format
     test_taken = db.Column(db.Integer, db.ForeignKey('transcript_test.id'), nullable=False)
     user_transcript = db.Column(db.String(15000), nullable=False)  # User's submitted transcript
-    created_at = db.Column(db.DateTime, default=datetime.now())  # Auto-set on creation
-    updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())  # Auto-set on update
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  # Auto-set on creation
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=datetime.now())  # Auto-set on update

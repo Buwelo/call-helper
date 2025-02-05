@@ -11,9 +11,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State management
   const state = {
-    eventSource: null,
+    socket: null,
     lastTime: -1,
     transcriptHistory: [], // Store transcript segments
+  };
+
+  // Initialize WebSocket connection
+  const initializeWebSocket = () => {
+    state.socket = io();
+
+    state.socket.on('connect', () => {
+      console.log('WebSocket connected');
+    });
+
+    state.socket.on('transcription_segment', data => {
+      updateTranscriptDisplay(data);
+      updateEditableTranscript(data);
+    });
+
+    state.socket.on('disconnect', () => {
+      console.log('WebSocket disconnected');
+    });
   };
 
   // Utility functions
@@ -55,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update content
     let newValue = elements.editableTranscript.value;
     if (newValue) newValue += '\n';
-    newValue += data.text; // Removed timestamp, only adding the text
+    newValue += data.text;
 
     elements.editableTranscript.value = newValue;
 
@@ -71,33 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Event Source Management
-  const connectEventSource = currentTime => {
-    if (state.eventSource) {
-      state.eventSource.close();
-    }
-
-    state.eventSource = new EventSource(`/transcription/stream?currenttime=${currentTime}`);
-
-    state.eventSource.onmessage = event => {
-      try {
-        const data = JSON.parse(event.data);
-        updateTranscriptDisplay(data);
-        updateEditableTranscript(data);
-      } catch (e) {
-        console.error('Error parsing subtitle data:', e);
-      }
-    };
-
-    state.eventSource.onerror = error => {
-      console.error('EventSource failed:', error);
-      if (state.eventSource) {
-        state.eventSource.close();
-        state.eventSource = null;
-      }
-    };
-  };
-
   // Audio Player Event Handlers
   const handleTimeUpdate = () => {
     const currentTime = elements.audioPlayer.currentTime;
@@ -105,128 +96,126 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (Math.abs(currentTime - state.lastTime) >= 0.1) {
       state.lastTime = currentTime;
-      connectEventSource(currentTime);
-    }
-  };
-
-  const closeEventSource = () => {
-    if (state.eventSource) {
-      state.eventSource.close();
-      state.eventSource = null;
-    }
-  };
-
-  const scoreModal = document.getElementById('score-results-modal');
-  const modal = new Modal(scoreModal);
-
-  // Submit Transcript
-  const submitTranscript = async e => {
-    e.preventDefault();
-
-    if (!elements.editableTranscript.value.trim()) {
-      alert('Empty submission');
-      console.error('Cannot submit empty transcript');
-      return;
-    }
-    modal.show();
-
-    // Set loading message
-    elements.scoreModalBody.innerHTML = '<p class="text-base">Loading score...</p>';
-
-    try {
-      const response = await fetch('/transcription/score-transcription/1', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transcript: elements.editableTranscript.value,
-        }),
+      state.socket.emit('request_transcription', {
+        currentTime: currentTime,
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.gpt4_score) {
-        throw new Error('No score data received from the server');
-      }
-
-      const scoreLines = data.gpt4_score.split('\n');
-
-      const createScoreSection = (title, scoreIndex, explanationIndex) => {
-        const scoreLine = scoreLines[scoreIndex] || '';
-        const score = scoreLine.split(':')[1]?.trim() || 'N/A';
-        const explanation = scoreLines[explanationIndex] || 'No explanation provided';
-
-        return `
-        <div>
-          <h3 class="text-lg font-semibold">${title}</h3>
-          <p>Score: ${score}</p>
-          <p>${explanation}</p>
-        </div>
-      `;
-      };
-
-      const htmlContent = `
-      <div class="space-y-4">
-        ${createScoreSection('Audio Cues', 0, 1)}
-        ${createScoreSection('Corrections (Words)', 3, 4)}
-        ${createScoreSection('Punctuation', 6, 7)}
-        ${createScoreSection('Grammar', 9, 10)}
-      </div>
-    `;
-
-      elements.scoreModalBody.innerHTML = htmlContent;
-    } catch (error) {
-      console.error('Error submitting transcript:', error);
-      elements.scoreModalBody.innerHTML = `
-      <p class="text-red-500">Error: ${error.message}</p>
-      <p>Please try again or contact support if the problem persists.</p>
-    `;
     }
   };
 
+  // Initialize Audio Player
+  if (elements.audioPlayer) {
+    elements.audioPlayer.addEventListener('play', () => {
+      elements.audioPlayer.controls = false;
+      state.socket.emit('request_transcription', {
+        currentTime: elements.audioPlayer.currentTime,
+        fileId: 1,
+      });
+    });
+
+    elements.audioPlayer.addEventListener('ended', () => {
+      elements.audioPlayer.controls = true;
+    });
+
+    elements.audioPlayer.addEventListener('timeupdate', handleTimeUpdate);
+    elements.audioPlayer.addEventListener('seeking', () => {
+      state.transcriptHistory = []; // Clear history when seeking
+      elements.transcript.value = '';
+    });
+
+    elements.audioPlayer.addEventListener('seeked', () => {
+      state.socket.emit('request_transcription', {
+        currentTime: elements.audioPlayer.currentTime,
+        fileId: 1,
+      });
+    });
+  }
+
+  // Initialize WebSocket connection
+  initializeWebSocket();
+
+  // Initialize the modal
+  const modal = new Modal(document.getElementById('score-results-modal'));
+
+  // Add event listener for the close button
   const closeModalButton = document.getElementById('close-modal-button');
   if (closeModalButton) {
     closeModalButton.addEventListener('click', () => {
       modal.hide();
     });
   }
-
-  // Initialize Audio Player
-  if (elements.audioPlayer) {
-    // Audio player controls
-    elements.audioPlayer.addEventListener('play', () => {
-      elements.audioPlayer.controls = false;
-      connectEventSource(elements.audioPlayer.currentTime);
-    });
-
-    elements.audioPlayer.addEventListener('ended', () => {
-      elements.audioPlayer.controls = true;
-      closeEventSource();
-    });
-
-    // Playback event listeners
-    elements.audioPlayer.addEventListener('timeupdate', handleTimeUpdate);
-    elements.audioPlayer.addEventListener('pause', closeEventSource);
-    elements.audioPlayer.addEventListener('seeking', () => {
-      closeEventSource();
-      elements.transcript.value = '';
-      state.transcriptHistory = []; // Clear history when seeking
-    });
-    elements.audioPlayer.addEventListener('seeked', () => {
-      connectEventSource(elements.audioPlayer.currentTime);
-    });
-  } else {
-    console.error('Audio player element not found');
-  }
-
-  // Submit button event listener
-  elements.submitButton.addEventListener('click', submitTranscript);
-
   // Cleanup
-  window.addEventListener('beforeunload', closeEventSource);
+  window.addEventListener('beforeunload', () => {
+    if (state.socket) {
+      state.socket.disconnect();
+    }
+  });
+
+  const stopAudio = () => {
+    elements.audioPlayer.pause();
+  };
+
+  const extractScore = (text, category) => {
+    const regex = new RegExp(`${category}:\\s*(\\d+)(?:/100)?`, 'i');
+    const match = text.match(regex);
+    return match ? match[1] : 'N/A';
+  };
+  
+  const generateScoreBreakdown = (gpt4_score) => {
+    const categories = ['Audio cues', 'Corrections in terms of words', 'Punctuation', 'Grammar'];
+    return categories.map(category => 
+      `<p><strong>${category}:</strong> ${extractScore(gpt4_score, category)}/100</p>`
+    ).join('');
+  };
+  
+  const extractOverallScore = (gpt4_score) => {
+    const match = gpt4_score.match(/Overall score:\s*(\d+(?:\.\d+)?)/i);
+    return match ? match[1] : 'N/A';
+  };
+
+  // Score Submission
+  elements.submitButton.addEventListener('click', e => {
+    e.preventDefault();
+    stopAudio();
+    modal.show();
+
+    if (!elements.editableTranscript.value) {
+      alert('Empty submission!');
+    }
+
+    const data = {
+      transcript: elements.editableTranscript.value,
+    };
+
+    fetch(`/transcription/score-transcription/${1}`, {
+      //TODO replace with actual API endpoint
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+
+               const scoreHTML = `
+          <div class="score-results">
+            <h3>Scoring Results</h3>
+            <div class="score-breakdown">
+              ${generateScoreBreakdown(data.gpt4_score)}
+            </div>
+            <h4>Overall Score: ${extractOverallScore(data.gpt4_score)}</h4>
+            <div class="explanation">
+              <h5>Explanation:</h5>
+              <p>${data.gpt4_score.split('\n\n').pop()}</p>
+            </div>
+          </div>
+        `;
+        elements.scoreModalBody.innerHTML = scoreHTML;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error scoring the transcript!');
+      });
+  });
 });

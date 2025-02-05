@@ -15,44 +15,51 @@
     <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.css" rel="stylesheet" />
   </head>
   <body>
-    <header class="flex justify-between items-center py-4 px-4 bg-gray-200  shadow-md">
+    <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
       <h1 class="text-2xl font-bold">CaptionCall Tester</h1>
       <div class="relative">
         <button
-        class="flex items-center space-x-2 focus:outline-none"
-        id="user-menu-button"
-        aria-expanded="false"
-        aria-haspopup="true"
-        onclick="toggleUserMenu()"
+          class="flex items-center space-x-2 focus:outline-none"
+          id="user-menu-button"
+          aria-expanded="false"
+          aria-haspopup="true"
+          onclick="toggleUserMenu()"
         >
-        <svg class="w-8 h-8 rounded-full" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
-        <span class="text-sm font-medium text-gray-700">User</span>
+          <svg class="w-8 h-8 rounded-full" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+            />
+          </svg>
+          <span class="text-sm font-medium text-gray-700">User</span>
         </button>
         <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden" id="user-menu">
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap">Email: {{ current_user.email }}</a>
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap">Name: {{ current_user.first_name }} {{ current_user.last_name }}</a>
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap"
+            >Email: {{ current_user.email }}</a
+          >
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap"
+            >Name: {{ current_user.first_name }} {{ current_user.last_name }}</a
+          >
           <a href="auth/logout" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap">Sign Out</a>
         </div>
       </div>
-      </header>
+    </header>
     <script>
       function toggleUserMenu() {
-      const menu = document.getElementById('user-menu');
-      menu.classList.toggle('hidden');
+        const menu = document.getElementById('user-menu');
+        menu.classList.toggle('hidden');
       }
     </script>
     <div class="container p-4">
       <div class="space-y-4 justify-items-center">
+        <!-- TODO make dynamic -->
         <audio controls class="w-100" id="audioPlayer">
-          <source src="{{ url_for('static', filename='/audio/call_with_mark.m4a') }}" type="audio/mpeg" />
+          <source src="{{ url_for('static', filename='/audio/call_with_rob.m4a') }}" type="audio/mpeg" />
           Your browser does not support the audio element.
         </audio>
         <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
         <form>
           <div class="transcription-container flex gap-4 w-full justify-center">
-            <div class="min-w-xl">
+            <!-- <div class="min-w-xl">
               <label for="transcript" class="block mb-2 text-sm font-medium text-gray-900"> Current subtitles </label>
 
               <textarea
@@ -64,11 +71,16 @@
                 rows="20"
                 cols="30"
               ></textarea>
-            </div>
+            </div> -->
             <div class="">
+              <div id="welcome-banner" class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg">
+                  <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
+                  <p class="text-md font-semibold">Instructions: Modify the text of the conversation as your hear it, correcting inaccuracies and adding audio cues like [YAWN] as necessary. Ignore the text with "..." and only edit the others.</p>
+              </div>
               <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900">
-                Your corrections (make corrections of the live transcript for your assessment)
+                
               </label>
+              
 
               <textarea
                 id="editable-transcript"
@@ -163,6 +175,8 @@
         </div>
       </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
+ 
   </body>
 </html>
