@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cursorEnd = elements.editableTranscript.selectionEnd;
     const scrollTop = elements.editableTranscript.scrollTop;
     const wasAtBottom =
-      scrollTop + elements.editableTranscript.clientHeight === elements.editableTranscript.scrollHeight;
+      scrollTop + elements.editableTranscript.clientHeight >= elements.editableTranscript.scrollHeight - 5;
 
     // Update content
     let newValue = elements.editableTranscript.value;
@@ -87,7 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
       }
     }
+
+    // Auto-scroll if user hasn't scrolled up
+    if (wasAtBottom) {
+      elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
+    }
   };
+
 
   // Audio Player Event Handlers
   const handleTimeUpdate = () => {
