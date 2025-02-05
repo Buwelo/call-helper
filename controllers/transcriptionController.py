@@ -39,12 +39,12 @@ def score_transcription(id):
 You are an AI assistant knowledgeable in how transcriptions for accessibility needs are scored.
 The transcriptions in this case are a result of a user correcting AI transcriptions on the fly.
 Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria:
-- Audio cues like YAWN, LAUGHTER, and BABBLE.
-- Corrections made in terms of words, e.g., AI produced "rain" in transcript, user corrects it to "reign"
-- Punctuation, e.g., AI produces "!" in transcript, user corrects it to "."
+- Audio cues like YAWN, LAUGHTER, and BABBLE, assign a score of 100
+- Corrections made in terms of proper contextual word use, e.g. AI produced "rain" in transcript, user corrects it to "reign", assign a score of 100.
+- Punctuation, e.g., AI produces "!" in transcript, user corrects it to ".", Emphasis on punctuations that can affect sentence meaning, assign a score of 100.
 
 Provide a score out of 100 and a brief explanation for each criterion.
-Provide an overall score for the entire test.
+Provide an overall percentage score for the entire test, as eg. (audio score + corrections score + punctuation/ 300) = Overall Percentage Score
 """
 
     try:
