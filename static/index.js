@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   elements.submitButton.addEventListener('click', e => {
     e.preventDefault();
     stopAudio();
-    modal.show();
+    
 
     if (!elements.editableTranscript.value) {
       alert('Empty submission!');
@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
         `;
+        modal.show();
         elements.scoreModalBody.innerHTML = scoreHTML;
       })
       .catch(error => {

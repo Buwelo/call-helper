@@ -44,6 +44,7 @@ Given the user's transcript and the correct transcript, compare the two transcri
 - Punctuation, e.g., AI produces "!" in transcript, user corrects it to ".", Emphasis on punctuations that can affect sentence meaning, assign a score of 100.
 
 Provide a score out of 100 and a brief explanation for each criterion.
+Produce a value for each item above
 Provide an overall percentage score for the entire test, as eg. (audio score + corrections score + punctuation/ 300) = Overall Percentage Score
 """
 

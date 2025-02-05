@@ -83,7 +83,7 @@ def handle_transcription(data):
         
       
         # Use a default file path
-        srtFile = './files/call_with_rob.srt'
+        srtFile = './files/caption_call.srt'
 
 
         # Get subtitle entries (cached if already read)
