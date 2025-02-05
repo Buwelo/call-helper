@@ -73,9 +73,14 @@
               ></textarea>
             </div> -->
             <div class="">
+              <div id="welcome-banner" class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg">
+                  <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
+                  <p class="text-md font-semibold">Your corrections (make corrections of the live transcript for your assessment).</p>
+              </div>
               <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900">
-                Your corrections (make corrections of the live transcript for your assessment)
+                
               </label>
+              
 
               <textarea
                 id="editable-transcript"
