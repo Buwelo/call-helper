@@ -53,7 +53,7 @@
       <div class="space-y-4 justify-items-center">
         <!-- TODO make dynamic -->
         <audio controls class="w-100" id="audioPlayer">
-          <source src="{{ url_for('static', filename='/audio/call_with_rob.m4a') }}" type="audio/mpeg" />
+          <source src="{{ url_for('static', filename='audio/call_with_rob.m4a') }}" type="audio/mpeg" />
           Your browser does not support the audio element.
         </audio>
         <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
@@ -73,14 +73,18 @@
               ></textarea>
             </div> -->
             <div class="">
-              <div id="welcome-banner" class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg">
-                  <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
-                  <p class="text-md font-semibold">Your corrections (make corrections of the live transcript for your assessment).</p>
+              <div
+                id="welcome-banner"
+                class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg"
+              >
+                <p class="text-lg font-semibold">
+                  🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.
+                </p>
+                <p class="text-md font-semibold">
+                  Your corrections (make corrections of the live transcript for your assessment).
+                </p>
               </div>
-              <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900">
-                
-              </label>
-              
+              <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900"> </label>
 
               <textarea
                 id="editable-transcript"
@@ -177,6 +181,5 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
- 
   </body>
 </html>
