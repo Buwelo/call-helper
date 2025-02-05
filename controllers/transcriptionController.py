@@ -1,11 +1,13 @@
 import os
 from venv import logger
 from flask import jsonify, request
+from flask_login import current_user
 import logging
 from openai import OpenAI
 import openai
 from config.extensions import db
-from models import TranscriptTest
+from models import TranscriptTest, UserTranscript
+from datetime import datetime
 
 # TODO use structured json results\
 # TODO tune prompt to perfection so scoring is more accurate
@@ -58,15 +60,27 @@ Provide an overall score for the entire test.
         )
 
         gpt4_score = response.choices[0].message.content
+        
+        result = UserTranscript(
+            user_id=current_user.id,
+            score=gpt4_score,
+            test_taken=id,
+            user_transcript=user_submitted_transcript
+        )
+        db.session.add(result)
+        db.session.commit()
 
+        print(f"User's transcript  saved: {result}")
         return jsonify({
             'test_id': id,
             'status': 'success',
             'message': 'Transcript scored successfully',
-            'user_transcript': user_submitted_transcript[:100] + '...' if user_submitted_transcript else None,
-            'correct_transcript': good_transcript[:100] + '...',
+            # 'user_transcript': user_submitted_transcript[:100] + '...' if user_submitted_transcript else None,
+            # 'correct_transcript': good_transcript[:100] + '...',
             'gpt4_score': gpt4_score
         })
+        
+        
 
     except Exception as e:
         logger.error(f"Error in scoring transcription: {str(e)}")

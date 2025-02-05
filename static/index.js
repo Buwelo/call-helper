@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
       transcript: elements.editableTranscript.value,
     };
 
-    fetch('/transcription/score-transcription/1', {
+    fetch(`/transcription/score-transcription/${1}`, {
       //TODO replace with actual API endpoint
       method: 'POST',
       headers: {
