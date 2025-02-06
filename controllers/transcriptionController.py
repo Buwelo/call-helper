@@ -36,16 +36,16 @@ def score_transcription(id):
     good_transcript = test_data.good_transcript
 
     content = """
-You are an AI assistant knowledgeable in how transcriptions for accessibility needs are scored.
-The transcriptions in this case are a result of a user correcting AI transcriptions on the fly.
+You are an AI assistant knowledgeable in how transcriptions for accessibility needs especially the deaf are scored.
+The transcriptions in this case are a result of a user correcting AI transcriptions on the fly for CaptionCall.
 Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria:
 - Audio cues like YAWN, LAUGHTER, and BABBLE, assign a score of 100
 - Corrections made in terms of proper contextual word use, e.g. AI produced "rain" in transcript, user corrects it to "reign", assign a score of 100.
 - Punctuation, e.g., AI produces "!" in transcript, user corrects it to ".", Emphasis on punctuations that can affect sentence meaning, assign a score of 100.
 
-Provide a score out of 100 and a brief explanation for each criterion.
-Produce a value for each item above
-Provide an overall percentage score for the entire test, as eg. (audio score + corrections score + punctuation/ 300) = Overall Percentage Score
+Provide a score out of 100 and a brief explanation for each criterion, scoring format should be text-based and brief and not more than 30 words.
+Produce a value for each item above and assign "not applicable" if the criterion was not met.
+Provide an overall percentage score for the entire test, as eg. (audio score + corrections score + punctuation/ 300) = Overall Percentage Score.
 """
 
     try:
