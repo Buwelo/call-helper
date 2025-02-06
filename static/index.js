@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('WebSocket connected');
     });
 
-    state.socket.on('transcription_segment', data => {
+    state.socket.on('transcription_segment', data => { //when piece of data is received from server, update transcript and editable transcript
       updateTranscriptDisplay(data);
       updateEditableTranscript(data);
     });
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.audioPlayer.controls = false;
       state.socket.emit('request_transcription', {
         currentTime: elements.audioPlayer.currentTime,
-        fileId: 1,
+        transcriptId: 1,
       });
     });
 
@@ -127,12 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.transcript.value = '';
     });
 
-    elements.audioPlayer.addEventListener('seeked', () => {
-      state.socket.emit('request_transcription', {
-        currentTime: elements.audioPlayer.currentTime,
-        fileId: 1,
-      });
-    });
+    // elements.audioPlayer.addEventListener('seeked', () => {
+    //   state.socket.emit('request_transcription', {
+    
+    //   });
+    // });
   }
 
   // Initialize WebSocket connection
@@ -172,10 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('');
   };
 
-  const extractOverallScore = gpt4_score => {
-    const match = gpt4_score.match(/Overall score:\s*(\d+(?:\.\d+)?)/i);
-    return match ? match[1] : 'N/A';
-  };
 
   // Score Submission
   elements.submitButton.addEventListener('click', e => {
