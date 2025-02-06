@@ -112,7 +112,16 @@ def handle_transcription(data):
 def handle_disconnect():
     logging.info(f"Client disconnected: {current_user.id}")
 
+# Score Test
 @transcription.route('/score-transcription/<int:id>', methods=['POST'])
 @login_required
 def score_transcription(id):
 	return transcriptionController.score_transcription(id)
+
+# Create Test
+@transcription.route('/create_test', methods=['GET', 'POST'])
+@login_required
+def create_test():
+    if request.method == 'POST':
+        return transcriptionController.create_test()
+    return render_template('create_test.html')

@@ -89,3 +89,10 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
             'status': 'error',
             'message': 'An error occurred while scoring the transcript'
         }), 500
+
+def create_test():
+    # create test
+    # use id from test creation to save file in server
+    if request.method == 'POST':
+        print("creating new test'}),")
+        return jsonify({'status': 'success', 'message': 'Test created successfully'})
