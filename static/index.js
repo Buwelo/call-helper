@@ -94,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-
   // Audio Player Event Handlers
   const handleTimeUpdate = () => {
     const currentTime = elements.audioPlayer.currentTime;
@@ -165,15 +164,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const match = text.match(regex);
     return match ? match[1] : 'N/A';
   };
-  
-  const generateScoreBreakdown = (gpt4_score) => {
+
+  const generateScoreBreakdown = gpt4_score => {
     const categories = ['Audio cues', 'Corrections in terms of words', 'Punctuation', 'Grammar'];
-    return categories.map(category => 
-      `<p><strong>${category}:</strong> ${extractScore(gpt4_score, category)}/100</p>`
-    ).join('');
+    return categories
+      .map(category => `<p><strong>${category}:</strong> ${extractScore(gpt4_score, category)}/100</p>`)
+      .join('');
   };
-  
-  const extractOverallScore = (gpt4_score) => {
+
+  const extractOverallScore = gpt4_score => {
     const match = gpt4_score.match(/Overall score:\s*(\d+(?:\.\d+)?)/i);
     return match ? match[1] : 'N/A';
   };
@@ -182,47 +181,45 @@ document.addEventListener('DOMContentLoaded', () => {
   elements.submitButton.addEventListener('click', e => {
     e.preventDefault();
     stopAudio();
-    
 
-    if (!elements.editableTranscript.value) {
-      alert('Empty submission!');
+    const transcriptValue = elements.editableTranscript.value.trim();
+
+    if (transcriptValue.length <= 15) {
+      alert('Transcript is too short. Please provide a more substantial submission.');
+      return;
     }
 
     const data = {
-      transcript: elements.editableTranscript.value,
+      transcript: transcriptValue,
     };
 
     fetch(`/transcription/score-transcription/${1}`, {
-      //TODO replace with actual API endpoint
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
         console.log(data);
 
-               const scoreHTML = `
-          <div class="score-results">
-            <h3>Scoring Results</h3>
-            <div class="score-breakdown">
-              ${generateScoreBreakdown(data.gpt4_score)}
-            </div>
-            <h4>Overall Score: ${extractOverallScore(data.gpt4_score)}</h4>
-            <div class="explanation">
-              <h5>Explanation:</h5>
-              <p>${data.gpt4_score.split('\n\n').pop()}</p>
-            </div>
-          </div>
+        const scoreHTML = `
+          
+              ${data.gpt4_score}
+            
         `;
         modal.show();
         elements.scoreModalBody.innerHTML = scoreHTML;
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error scoring the transcript!');
+        alert('Error scoring the transcript. Please try again.');
       });
   });
 });
