@@ -8,6 +8,8 @@ import openai
 from config.extensions import db
 from models import TranscriptTest, UserTranscript
 from datetime import datetime
+from werkzeug.utils import secure_filename
+
 
 # TODO use structured json results\
 # TODO tune prompt to perfection so scoring is more accurate
@@ -90,9 +92,83 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
             'message': 'An error occurred while scoring the transcript'
         }), 500
 
+
+UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+ALLOWED_EXTENSIONS = {'srt'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 def create_test():
-    # create test
-    # use id from test creation to save file in server
-    if request.method == 'POST':
-        print("creating new test'}),")
-        return jsonify({'status': 'success', 'message': 'Test created successfully'})
+    if request.method != 'POST':
+        return jsonify({'status': 'error', 'message': 'Method not allowed'}), 405
+    
+    # Get form data
+    name_of_test = request.form.get('name_of_test')
+    good_transcript = request.form.get('score_transcript')  # From frontend's score_transcript
+    bad_transcript = request.form.get('test_transcript')    # From frontend's test_transcript
+    
+    # Input validation
+    if not all([name_of_test, good_transcript, bad_transcript]):
+        return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+    
+    if 'file' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No file part'}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({'status': 'error', 'message': 'No file selected'}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({'status': 'error', 'message': 'Invalid file format'}), 400
+    
+    try:
+        # Create new test object with initial values
+        new_test = TranscriptTest(
+            good_transcript=good_transcript,
+            bad_transcript=bad_transcript,
+            name_of_test=name_of_test
+        )
+        
+        # Add and commit to get the ID
+        db.session.add(new_test)
+        db.session.flush()  # This gets us the ID without committing
+        
+        # Save the file
+        filename = secure_filename(f'{new_test.id}.srt')
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        print(f"Saving file to: {file_path}")
+        
+        if os.path.exists(file_path): # Check for existing file
+            filename = secure_filename(f'{new_test.id}.srt')
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            print(f"File already exists. Saving to: {file_path}")
+
+        file.save(file_path)
+        # Update the audio file path
+        new_test.audio_file_path = file_path
+        
+        # Now commit everything
+        db.session.commit()
+        
+        logger.info(f"New test created: {new_test.id}")
+        return jsonify({
+            'status': 'success',
+            'message': 'Test created successfully',
+            'test_id': new_test.id
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error creating test: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'An error occurred while creating the test: {str(e)}'
+        }), 500

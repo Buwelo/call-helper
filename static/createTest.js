@@ -1,20 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded and parsed');
 
+  const form = document.getElementById('test-form');
   const fileUpload = document.getElementById('file-upload');
   const scoreTranscriptInput = document.getElementById('score-transcript');
   const testTranscriptInput = document.getElementById('test-transcript');
   const nameOfTestInput = document.getElementById('name-of-test');
-  const submitButton = document.getElementById('submit');
 
   const showError = (message, field) => {
     const errorSpan = field.nextElementSibling;
     if (errorSpan && errorSpan.classList.contains('error-message')) {
-      const errorDiv = document.createElement('div');
-      errorDiv.textContent = message;
-      errorSpan.appendChild(errorDiv);
+      errorSpan.textContent = message;
       setTimeout(() => {
-        errorDiv.remove();
+        errorSpan.textContent = '';
       }, 3000);
     }
   };
@@ -28,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   };
 
-  submitButton.addEventListener('click', e => {
+  form.addEventListener('submit', e => {
     e.preventDefault();
 
     const validations = [
@@ -46,6 +44,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // If all validations pass, proceed with form submission
     console.log('All fields are valid. Proceeding with form submission.');
+
+    const formData = new FormData();
+    formData.append('file', fileUpload.files[0]);
+    formData.append('score_transcript', scoreTranscriptInput.value);
+    formData.append('test_transcript', testTranscriptInput.value);
+    formData.append('name_of_test', nameOfTestInput.value);
     
+    
+
+    fetch('/transcription/create_test', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert('Test created successfully!');
+        form.reset();
+      } else {
+        alert(`Error: ${data.message}`);
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      alert('An error occurred while creating the test.');
+    });
   });
 });
