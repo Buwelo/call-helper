@@ -93,12 +93,13 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
         }), 500
 
 
-UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
+SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
+AUDIO_UPLOAD_FOLDER = os.path.abspath('static/audio')  # Or your desired path
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+if not os.path.exists(SRT_UPLOAD_FOLDER):
+    os.makedirs(SRT_UPLOAD_FOLDER)
 
-ALLOWED_EXTENSIONS = {'srt'}
+ALLOWED_EXTENSIONS = {'srt','m4a', 'wav','mp3', }
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 def allowed_file(filename):
@@ -107,64 +108,72 @@ def allowed_file(filename):
 def create_test():
     if request.method != 'POST':
         return jsonify({'status': 'error', 'message': 'Method not allowed'}), 405
-    
-    # Get form data
+
+    logger.info(f"request: {request.files}")
+
     name_of_test = request.form.get('name_of_test')
-    good_transcript = request.form.get('score_transcript')  # From frontend's score_transcript
-    bad_transcript = request.form.get('test_transcript')    # From frontend's test_transcript
-    
-    # Input validation
+    good_transcript = request.form.get('score_transcript')
+    bad_transcript = request.form.get('test_transcript')
+
     if not all([name_of_test, good_transcript, bad_transcript]):
         return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
-    
-    if 'file' not in request.files:
-        return jsonify({'status': 'error', 'message': 'No file part'}), 400
-    
-    file = request.files['file']
-    
-    if file.filename == '':
-        return jsonify({'status': 'error', 'message': 'No file selected'}), 400
-    
-    if not allowed_file(file.filename):
-        return jsonify({'status': 'error', 'message': 'Invalid file format'}), 400
-    
+
+    # Check for multiple SRT files
+    srt_files = request.files.getlist('srt_file')
+    if not srt_files:
+        return jsonify({'status': 'error', 'message': 'No SRT files part'}), 400
+
+    # Check for multiple audio files
+    audio_files = request.files.getlist('audio_file')
+    if not audio_files:
+        return jsonify({'status': 'error', 'message': 'No audio files part'}), 400
+
     try:
-        # Create new test object with initial values
         new_test = TranscriptTest(
             good_transcript=good_transcript,
             bad_transcript=bad_transcript,
             name_of_test=name_of_test
         )
-        
-        # Add and commit to get the ID
+
         db.session.add(new_test)
-        db.session.flush()  # This gets us the ID without committing
-        
-        # Save the file
-        filename = secure_filename(f'{new_test.id}.srt')
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        db.session.flush()  # Get the ID
 
-        print(f"Saving file to: {file_path}")
-        
-        if os.path.exists(file_path): # Check for existing file
-            filename = secure_filename(f'{new_test.id}.srt')
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            print(f"File already exists. Saving to: {file_path}")
+        # Save each SRT file
+        for srt_file in srt_files:
+            if srt_file.filename == '':
+                continue
+            if not allowed_file(srt_file.filename):
+                return jsonify({'status': 'error', 'message': 'Invalid SRT file format'}), 400
 
-        file.save(file_path)
-        # Update the audio file path
-        new_test.audio_file_path = file_path
-        
-        # Now commit everything
+            srt_filename = secure_filename(f'{new_test.id}_{srt_file.filename}')
+            srt_file_path = os.path.join(SRT_UPLOAD_FOLDER, srt_filename)
+            srt_file.save(srt_file_path)
+            # Assuming you have a way to store multiple SRT file paths in your model
+
+        # Save each audio file
+        for audio_file in audio_files:
+            if audio_file.filename == '':
+                continue
+            if not allowed_file(audio_file.filename):
+                return jsonify({'status': 'error', 'message': 'Invalid audio file format'}), 400
+
+            audio_filename = secure_filename(f'{new_test.id}_{audio_file.filename}')
+            audio_file_path = os.path.join(AUDIO_UPLOAD_FOLDER, audio_filename)
+            audio_file.save(audio_file_path)
+
+            new_test.audio_file_path = audio_file_path  # Update the audio file path in the database
+            new_test.srt_file_path = srt_file_path  # Update the audio file path in the database
+            # Assuming you have a way to store multiple audio file paths in your model
+
         db.session.commit()
-        
+
         logger.info(f"New test created: {new_test.id}")
         return jsonify({
             'status': 'success',
             'message': 'Test created successfully',
             'test_id': new_test.id
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error creating test: {str(e)}")

@@ -38,3 +38,5 @@ def seed_transcripts():
 
 if __name__ == '__main__':
     seed_transcripts()
+
+# TODO: ADD AUDIO file upload too
