@@ -83,8 +83,9 @@ def handle_transcription(data):
         
       
         # Use a default file path
-        srtFile = './files/caption_call.srt'
-
+        # srtFile = './files/caption_call.srt'
+        # srtFile = './files/harvard.srt'
+        srtFile = data.get('srt_file')
 
         # Get subtitle entries (cached if already read)
         subtitle_entries = srt_handler.read_srt_file(srtFile)

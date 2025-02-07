@@ -1,8 +1,10 @@
+import logging
+import random
 from flask import render_template, redirect, url_for
 from flask_socketio import SocketIO
 from config.extensions import db, login_manager
 from config import create_app
-from models import User
+from models import User, TranscriptTest
 from flask_login import login_required
 from routes.transcript import handle_connect, handle_transcription
 import os
@@ -25,7 +27,15 @@ def unauthorized():
 @app.route('/')
 @login_required
 def home():
-    return render_template('index.html')
+    # load random test from database
+    tests = [test.serialize() for test in TranscriptTest.query.all()]
+    logging.info(f'all tests, {tests}')
+    random_test = random.choice(tests)
+    logging.info(f'random test, {random_test}')
+
+    audio_file = random_test.get('audio_file_path')
+    srt_file = random_test.get('srt_file_path')
+    return render_template('index.html', audio_file=audio_file, srt_file=srt_file)
 
 # Import your socket event handlers
 

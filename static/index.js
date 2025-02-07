@@ -8,34 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     submitButton: document.getElementById('submit'),
     scoreModalBody: document.getElementById('score-modal-body'),
     startTestButton: document.getElementById('start-test'),
+    srtToStream: document.getElementById('srt-to-stream'),
   };
 
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
-    console.log('Starting test');
-
-    //get all tests
-    const tests = getAllTests();
-    console.log(tests);
-    
-    // store test urls in array
-    // randomize array
-    // audio file path to audio
     elements.audioPlayer.play();
   });
-
-  const getAllTests = async () => {
-    try {
-      const response = await fetch('/transcription/get_tests');
-      const data = await response.json();
-      console.log(data.tests);
-
-      return data.tests;
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error fetching tests. Please try again.');
-    }
-  };
 
   // State management
   const state = {
@@ -128,10 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTime = elements.audioPlayer.currentTime;
     elements.timeDisplay.textContent = formatTime(currentTime);
 
+    // console.log(elements.srtToStream.value);
+
     if (Math.abs(currentTime - state.lastTime) >= 0.1) {
       state.lastTime = currentTime;
       state.socket.emit('request_transcription', {
         currentTime: currentTime,
+        srt_file: elements.srtToStream.value,
       });
     }
   };
@@ -142,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.audioPlayer.controls = false;
       state.socket.emit('request_transcription', {
         currentTime: elements.audioPlayer.currentTime,
-        transcriptId: 1,
+        srt_file: elements.srtToStream.value,
       });
     });
 
@@ -187,24 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.audioPlayer.pause();
   };
 
-  const extractScore = (text, category) => {
-    const regex = new RegExp(`${category}:\\s*(\\d+)(?:/100)?`, 'i');
-    const match = text.match(regex);
-    return match ? match[1] : 'N/A';
-  };
-
-  const generateScoreBreakdown = gpt4_score => {
-    const categories = ['Audio cues', 'Corrections in terms of words', 'Punctuation', 'Grammar'];
-    return categories
-      .map(category => `<p><strong>${category}:</strong> ${extractScore(gpt4_score, category)}/100</p>`)
-      .join('');
-  };
-
   // Score Submission
   elements.submitButton.addEventListener('click', e => {
     e.preventDefault();
     stopAudio();
-
+    
     const transcriptValue = elements.editableTranscript.value.trim();
 
     if (transcriptValue.length <= 15) {
@@ -216,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       transcript: transcriptValue,
     };
 
-    fetch(`/transcription/score-transcription/${1}`, {
+    fetch(`/transcription/score-transcription/${1}`, { //TODO fix scoring
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
