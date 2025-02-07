@@ -11,6 +11,15 @@ class TranscriptTest(db.Model):
     name_of_test = db.Column(db.String(150), nullable=False)  # Name of the test
     def __repr__(self):
         return f'<TranscriptTest {self.id}>'
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name_of_test': self.name_of_test,
+            'good_transcript': self.good_transcript,
+            'bad_transcript': self.bad_transcript,
+            'audio_file_path': self.audio_file_path,
+            'srt_file_path': self.srt_file_path
+        }
     
     
 class UserTranscript(db.Model):

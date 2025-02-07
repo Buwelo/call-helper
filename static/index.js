@@ -7,6 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
     editableTranscript: document.getElementById('editable-transcript'),
     submitButton: document.getElementById('submit'),
     scoreModalBody: document.getElementById('score-modal-body'),
+    startTestButton: document.getElementById('start-test'),
+  };
+
+  elements.startTestButton.addEventListener('click', e => {
+    e.preventDefault();
+    console.log('Starting test');
+
+    //get all tests
+    const tests = getAllTests();
+    console.log(tests);
+    
+    // store test urls in array
+    // randomize array
+    // audio file path to audio
+    elements.audioPlayer.play();
+  });
+
+  const getAllTests = async () => {
+    try {
+      const response = await fetch('/transcription/get_tests');
+      const data = await response.json();
+      console.log(data.tests);
+
+      return data.tests;
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error fetching tests. Please try again.');
+    }
   };
 
   // State management
@@ -24,7 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('WebSocket connected');
     });
 
-    state.socket.on('transcription_segment', data => { //when piece of data is received from server, update transcript and editable transcript
+    state.socket.on('transcription_segment', data => {
+      //when piece of data is received from server, update transcript and editable transcript
       updateTranscriptDisplay(data);
       updateEditableTranscript(data);
     });
@@ -129,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // elements.audioPlayer.addEventListener('seeked', () => {
     //   state.socket.emit('request_transcription', {
-    
+
     //   });
     // });
   }
@@ -170,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .map(category => `<p><strong>${category}:</strong> ${extractScore(gpt4_score, category)}/100</p>`)
       .join('');
   };
-
 
   // Score Submission
   elements.submitButton.addEventListener('click', e => {

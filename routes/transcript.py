@@ -87,7 +87,6 @@ def handle_transcription(data):
 
 
         # Get subtitle entries (cached if already read)
-        # Get subtitle entries (cached if already read)
         subtitle_entries = srt_handler.read_srt_file(srtFile)
         
         # Find current subtitle
@@ -125,3 +124,8 @@ def create_test():
     if request.method == 'POST':
         return transcriptionController.create_test()
     return render_template('create_test.html')
+
+@transcription.route('/get_tests', methods=['GET'])
+@login_required
+def get_tests():
+    return transcriptionController.get_tests()

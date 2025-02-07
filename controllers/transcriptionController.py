@@ -21,6 +21,17 @@ client = OpenAI()
 
 # id will be used to get the correct transcript from the database to compare
 def score_transcription(id):
+    """
+    Scores a user-submitted transcript against a correct transcript from the database.
+
+    Parameters:
+        id (int): The identifier for the transcript test to be scored.
+
+    Returns:
+        Response: A JSON response containing the status of the scoring process.
+                  On success, returns a status of 'success', the test ID, and the GPT-4 score.
+                  On failure, returns a status of 'error' and an error message.
+    """
     logger.info(f"Scoring transcription for id: {id}")
 
     # Get the user submitted transcript from the request
@@ -63,7 +74,7 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
         )
 
         gpt4_score = response.choices[0].message.content
-        
+
         result = UserTranscript(
             user_id=current_user.id,
             score=gpt4_score,
@@ -78,12 +89,8 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
             'test_id': id,
             'status': 'success',
             'message': 'Transcript scored successfully',
-            # 'user_transcript': user_submitted_transcript[:100] + '...' if user_submitted_transcript else None,
-            # 'correct_transcript': good_transcript[:100] + '...',
             'gpt4_score': gpt4_score
         })
-        
-        
 
     except Exception as e:
         logger.error(f"Error in scoring transcription: {str(e)}")
@@ -91,6 +98,7 @@ Provide an overall percentage score for the entire test, as eg. (audio score + c
             'status': 'error',
             'message': 'An error occurred while scoring the transcript'
         }), 500
+
 
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
@@ -106,6 +114,15 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def create_test():
+    """
+    Creates a new transcription test by processing uploaded SRT and audio files, 
+    and storing the test details in the database.
+
+    Returns:
+        Response: A JSON response indicating the success or failure of the test creation.
+                  On success, returns a status of 'success' and the test ID.
+                  On failure, returns a status of 'error' and an error message.
+    """
     if request.method != 'POST':
         return jsonify({'status': 'error', 'message': 'Method not allowed'}), 405
 
@@ -145,7 +162,7 @@ def create_test():
             if not allowed_file(srt_file.filename):
                 return jsonify({'status': 'error', 'message': 'Invalid SRT file format'}), 400
 
-            srt_filename = secure_filename(f'{new_test.id}_{srt_file.filename}')
+            srt_filename = secure_filename(f'{new_test.id}.srt')
             srt_file_path = os.path.join(SRT_UPLOAD_FOLDER, srt_filename)
             srt_file.save(srt_file_path)
             # Assuming you have a way to store multiple SRT file paths in your model
@@ -156,14 +173,17 @@ def create_test():
                 continue
             if not allowed_file(audio_file.filename):
                 return jsonify({'status': 'error', 'message': 'Invalid audio file format'}), 400
+            
+            audio_extension = os.path.splitext(audio_file.filename)[1]
 
-            audio_filename = secure_filename(f'{new_test.id}_{audio_file.filename}')
+            audio_filename = secure_filename(f'{new_test.id}{audio_extension}')
             audio_file_path = os.path.join(AUDIO_UPLOAD_FOLDER, audio_filename)
             audio_file.save(audio_file_path)
 
-            new_test.audio_file_path = audio_file_path  # Update the audio file path in the database
-            new_test.srt_file_path = srt_file_path  # Update the audio file path in the database
-            # Assuming you have a way to store multiple audio file paths in your model
+
+            new_test.audio_file_path = f'/audio/{new_test.id}{audio_extension}' 
+            new_test.srt_file_path = f'./files/{new_test.id}.srt'  
+
 
         db.session.commit()
 
@@ -181,3 +201,16 @@ def create_test():
             'status': 'error',
             'message': f'An error occurred while creating the test: {str(e)}'
         }), 500
+
+def get_tests():
+    """
+    Retrieves all transcription tests from the database.
+    Returns:
+    Response: A JSON response containing the status and a list of test details.
+    """
+    logger.info("Getting all transcription tests")
+    tests = TranscriptTest.query.all()
+    return jsonify({
+        'status': 'success',
+        'tests': [test.serialize() for test in tests]
+    })
