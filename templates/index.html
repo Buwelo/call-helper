@@ -48,15 +48,23 @@
         const menu = document.getElementById('user-menu');
         menu.classList.toggle('hidden');
       }
+      // console.log('test srt', "{{srt_file}}");
     </script>
     <div class="container p-4">
+      <input id="srt-to-stream" class="hidden" value="{{srt_file}}" />
+      <input id="test-id" class="hidden" value="{{random_test.id}}" />
       <div class="space-y-4 justify-items-center">
-        <!-- TODO make dynamic -->
-        <audio controls class="w-100" id="audioPlayer">
-          <source src="{{ url_for('static', filename='audio/caption_call.m4a') }}" type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
-        <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
+        <div class="w-full text-center text-sm text-gray-500" id="time-display">
+          0:00:00
+          <button
+            type="button"
+            class="mx-auto block focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            id="start-test"
+          >
+            Start Test
+          </button>
+        </div>
+
         <form>
           <div class="transcription-container flex gap-4 w-full justify-center">
             <!-- <div class="min-w-xl">
@@ -73,9 +81,18 @@
               ></textarea>
             </div> -->
             <div class="">
-              <div id="welcome-banner" class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg">
-                  <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
-                  <p class="text-md font-semibold">Instructions: Modify the text of the conversation as your hear it, correcting inaccuracies and adding audio cues like [YAWN] as necessary. Ignore the text with "..." and only edit the others.</p>
+              <div
+                id="welcome-banner"
+                class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg"
+              >
+                <p class="text-lg font-semibold">
+                  🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.
+                </p>
+                <p class="text-md font-semibold">
+                  Please Instructions: Modify the text of the conversation as your hear it, correcting inaccuracies and
+                  adding audio cues like [YAWN] as necessary. Please use only directional keys and mouse to navigate
+                  ⬆️⬇️⬅️➡️
+                </p>
               </div>
               <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900"> </label>
 
@@ -171,6 +188,10 @@
           </div>
         </div>
       </div>
+      <audio controls class="w-100 invisible" id="audioPlayer">
+        <source src="{{url_for('static', filename='' + audio_file)}}" type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>

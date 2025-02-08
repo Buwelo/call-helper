@@ -23,7 +23,9 @@ def seed_transcripts():
     
     test1 = TranscriptTest(
         good_transcript=good_transcript_,
-        bad_transcript=bad_transcript_
+        bad_transcript=bad_transcript_,
+        audio_file_path="audio_file_path",
+        name_of_test="Test 1"  # Replace with actual name of the tes
     )
 
     try:
@@ -36,3 +38,5 @@ def seed_transcripts():
 
 if __name__ == '__main__':
     seed_transcripts()
+
+# TODO: ADD AUDIO file upload too
