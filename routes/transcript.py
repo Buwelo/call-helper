@@ -83,10 +83,10 @@ def handle_transcription(data):
         
       
         # Use a default file path
-        srtFile = './files/call_with_rob.srt'
+        # srtFile = './files/caption_call.srt'
+        # srtFile = './files/harvard.srt'
+        srtFile = data.get('srt_file')
 
-
-        # Get subtitle entries (cached if already read)
         # Get subtitle entries (cached if already read)
         subtitle_entries = srt_handler.read_srt_file(srtFile)
         
@@ -112,7 +112,21 @@ def handle_transcription(data):
 def handle_disconnect():
     logging.info(f"Client disconnected: {current_user.id}")
 
+# Score Test
 @transcription.route('/score-transcription/<int:id>', methods=['POST'])
 @login_required
 def score_transcription(id):
 	return transcriptionController.score_transcription(id)
+
+# Create Test
+@transcription.route('/create_test', methods=['GET', 'POST'])
+@login_required
+def create_test():
+    if request.method == 'POST':
+        return transcriptionController.create_test()
+    return render_template('create_test.html')
+
+@transcription.route('/get_tests', methods=['GET'])
+@login_required
+def get_tests():
+    return transcriptionController.get_tests()
