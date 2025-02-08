@@ -17,7 +17,7 @@ socketio = SocketIO(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    print("run")
+    # print("run")
     return db.session.get(User, int(user_id))
 
 @login_manager.unauthorized_handler
@@ -35,7 +35,7 @@ def home():
 
     audio_file = random_test.get('audio_file_path')
     srt_file = random_test.get('srt_file_path')
-    return render_template('index.html', audio_file=audio_file, srt_file=srt_file)
+    return render_template('index.html', audio_file=audio_file, srt_file=srt_file, random_test=random_test)
 
 # Import your socket event handlers
 
