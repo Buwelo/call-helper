@@ -29,7 +29,7 @@ def unauthorized():
 def home():
     # load random test from database
     tests = [test.serialize() for test in TranscriptTest.query.all()]
-    logging.info(f'all tests, {tests}')
+    # logging.info(f'all tests, {tests}')
     random_test = random.choice(tests)
     logging.info(f'random test, {random_test}')
 
