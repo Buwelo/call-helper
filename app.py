@@ -40,8 +40,6 @@ def home():
     srt_file = random_test.get('srt_file_path')
     return render_template('index.html', audio_file=audio_file, srt_file=srt_file, random_test=random_test)
 
-# Import your socket event handlers
-
 
 # Register your socket event handlers
 socketio.on_event('connect', handle_connect)
