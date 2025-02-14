@@ -13,7 +13,6 @@ from werkzeug.utils import secure_filename
 from pydantic import BaseModel
 
 
-# TODO use structured json results\
 # TODO tune prompt to perfection so scoring is more accurate
 
 class ScoreItem(BaseModel):
@@ -63,21 +62,35 @@ def score_transcription(id):
     good_transcript = test_data.good_transcript
 
     content = """
-You are an AI assistant knowledgeable in how transcriptions for accessibility needs especially the deaf are scored.
-The transcriptions in this case are a result of a user correcting AI transcriptions on the fly for CaptionCall. Ignore repeated lines in the script submitted.
-Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria:
-- Audio cues like YAWN, LAUGHTER, and BABBLE, assign a score of 100
-- Corrections made in terms of proper contextual word use, e.g. AI produced "rain" in transcript, user corrects it to "reign", assign a score of 100.
-- Punctuation, e.g., AI produces "!" in transcript, user corrects it to ".", Emphasis on punctuations that can affect sentence meaning, assign a score of 100.
+        You are an AI assistant knowledgeable in how transcriptions for accessibility needs, especially for the deaf, are scored.
+        The transcriptions in this case are a result of a user potentially correcting AI transcriptions on the fly for CaptionCall. 
+        Ignore repeated lines in the script submitted.
+        Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria, also show the changes the user made (if any) as compared with the correct transcript:
 
-Provide a score out of 100 and a brief explanation for each criterion, scoring format should be text-based and brief and not more than 30 words.
-Produce a value for each item above and assign "not applicable" if the criterion was not met.
-Provide an overall percentage score for the entire test, as eg. (audio score + corrections score + punctuation/ 300) = Overall Percentage Score.
-"""
+        1. Audio cues:
+        - If audio cues like YAWN, LAUGHTER, and BABBLE are correctly included or maintained, assign a score of 100.
+        - If such cues are missing or incorrectly modified, assign a score of 0.
+        - If no audio cues are present in either transcript, assign "not applicable".
+
+        2. Contextual word corrections:
+        - For each correction made in terms of proper contextual word use (e.g., changing "rain" to "reign"), assign 10 points.
+        - If no corrections were needed and none were made, assign a score of 100.
+        - If corrections were needed but not made, assign a score of 0.
+        - Maximum score for this category is 100.
+
+        3. Punctuation:
+        - For each correct punctuation change that affects sentence meaning, assign 10 points.
+        - If no punctuation changes were needed and none were made, assign a score of 100.
+        - If punctuation changes were needed but not made, assign a score of 0.
+        - Maximum score for this category is 100.
+
+        Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
+        Provide an overall percentage score for the entire test, calculated as: (audio cues score + contextual corrections score + punctuation score) / 300 * 100 = Overall Percentage Score.
+        """
 
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model="gpt-4o",
             messages=[
                 {'role': 'system', 'content': content},
                 {

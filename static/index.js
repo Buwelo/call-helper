@@ -70,8 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateEditableTranscript = data => {
-    if (!data.text || elements.editableTranscript.value.endsWith(data.text)) return;
+    if (!data.text) return;
 
+    // Split the current transcript and new text into lines
+    const currentLines = elements.editableTranscript.value.split('\n');
+    const newLines = data.text.split('\n');
+
+    // Filter out duplicate lines
+    const uniqueNewLines = newLines.filter(line => !currentLines.includes(line.trim()));
+
+    // If there are no new unique lines, return early
+    if (uniqueNewLines.length === 0) return;
     // Save current state
     const cursorPosition = elements.editableTranscript.selectionStart;
     const cursorEnd = elements.editableTranscript.selectionEnd;
@@ -81,8 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update content
     let newValue = elements.editableTranscript.value;
-    if (newValue) newValue += '\n';
-    newValue += data.text;
+    if (newValue && !newValue.endsWith('\n')) newValue += '\n';
+    newValue += uniqueNewLines.join('\n');
 
     elements.editableTranscript.value = newValue;
 
