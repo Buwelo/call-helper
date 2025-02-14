@@ -15,21 +15,24 @@ load_dotenv()
 app = create_app(os.getenv('FLASK_ENV', 'development'))
 socketio = SocketIO(app)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     # print("run")
     return db.session.get(User, int(user_id))
 
+
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for('auth.login'))
 
+
 @app.route('/')
 @login_required
 def home():
-    # load random test from database
     tests = [test.serialize() for test in TranscriptTest.query.all()]
-    # logging.info(f'all tests, {tests}')
+    if not tests:
+        return render_template('error.html', message="No tests available")
     random_test = random.choice(tests)
     logging.info(f'random test, {random_test}')
 
@@ -37,7 +40,6 @@ def home():
     srt_file = random_test.get('srt_file_path')
     return render_template('index.html', audio_file=audio_file, srt_file=srt_file, random_test=random_test)
 
-# Import your socket event handlers
 
 # Register your socket event handlers
 socketio.on_event('connect', handle_connect)
