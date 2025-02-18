@@ -14,6 +14,7 @@ load_dotenv()
 
 app = create_app(os.getenv('FLASK_ENV', 'development'))
 socketio = SocketIO(app)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50 MB
 
 
 @login_manager.user_loader
