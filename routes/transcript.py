@@ -19,10 +19,12 @@ class SubtitleEntry:
         self.end_time = end_time
         self.text = text
 
+
 def parse_time(time_str):
     """Convert SRT timestamp to seconds"""
     time_obj = datetime.strptime(time_str.replace(',', '.'), '%H:%M:%S.%f')
     return time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second + time_obj.microsecond / 1000000
+
 
 class SRTHandler:
     def __init__(self):
@@ -35,22 +37,25 @@ class SRTHandler:
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read().strip()
                 blocks = content.split('\n\n')
-                
+
                 for block in blocks:
                     lines = block.split('\n')
                     if len(lines) >= 3:
                         index = int(lines[0])
                         time_line = lines[1]
                         text = '\n'.join(lines[2:])
-                        
-                        time_match = re.match(r'(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})', time_line)
+
+                        time_match = re.match(
+                            r'(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})', time_line)
                         if time_match:
                             start_time = parse_time(time_match.group(1))
                             end_time = parse_time(time_match.group(2))
-                            entries.append(SubtitleEntry(index, start_time, end_time, text))
-            
-            self._subtitle_cache[file_path] = sorted(entries, key=lambda x: x.start_time)
-        
+                            entries.append(SubtitleEntry(
+                                index, start_time, end_time, text))
+
+            self._subtitle_cache[file_path] = sorted(
+                entries, key=lambda x: x.start_time)
+
         return self._subtitle_cache[file_path]
 
     def find_subtitle_at_time(self, entries, current_time):
@@ -60,8 +65,10 @@ class SRTHandler:
                 return entry
         return None
 
+
 # Create a global instance of SRTHandler
 srt_handler = SRTHandler()
+
 
 @socketio.on('connect')
 @login_required
@@ -69,6 +76,7 @@ def handle_connect():
     """Handle WebSocket connection"""
     logging.info(f"Client connected: {current_user.id}")
     emit('connection_established', {'status': 'connected'})
+
 
 @socketio.on('request_transcription')
 @login_required
@@ -79,9 +87,7 @@ def handle_transcription(data):
     """
     try:
         current_time = float(data.get('currentTime', 0))
-        
-        
-      
+
         # Use a default file path
         # srtFile = './files/caption_call.srt'
         # srtFile = './files/harvard.srt'
@@ -89,10 +95,11 @@ def handle_transcription(data):
 
         # Get subtitle entries (cached if already read)
         subtitle_entries = srt_handler.read_srt_file(srtFile)
-        
+
         # Find current subtitle
-        current_subtitle = srt_handler.find_subtitle_at_time(subtitle_entries, current_time)
-        
+        current_subtitle = srt_handler.find_subtitle_at_time(
+            subtitle_entries, current_time)
+
         if current_subtitle:
             # Emit in the format expected by the frontend
             emit('transcription_segment', {
@@ -100,7 +107,7 @@ def handle_transcription(data):
                 'end': current_subtitle.end_time,
                 'text': current_subtitle.text.strip()
             })
-                
+
     except FileNotFoundError as e:
         logging.error(f"SRT file not found: {str(e)}")
         emit('transcription_error', {'error': 'Subtitle file not found'})
@@ -108,17 +115,22 @@ def handle_transcription(data):
         logging.error(f"Error in handle_transcription: {str(e)}")
         emit('transcription_error', {'error': str(e)})
 
+
 @socketio.on('disconnect')
 def handle_disconnect():
     logging.info(f"Client disconnected: {current_user.id}")
 
 # Score Test
+
+
 @transcription.route('/score-transcription/<int:id>', methods=['POST'])
 @login_required
 def score_transcription(id):
-	return transcriptionController.score_transcription(id)
+    return transcriptionController.score_transcription(id)
 
 # Create Test
+
+
 @transcription.route('/create_test', methods=['GET', 'POST'])
 @login_required
 def create_test():
@@ -126,7 +138,15 @@ def create_test():
         return transcriptionController.create_test()
     return render_template('create_test.html')
 
+
 @transcription.route('/get_tests', methods=['GET'])
 @login_required
 def get_tests():
     return transcriptionController.get_tests()
+
+
+@transcription.route('/take_test', methods=['GET', 'POST'])
+@login_required
+def take_test():
+    if request.method == 'GET':
+        return transcriptionController.take_tests()

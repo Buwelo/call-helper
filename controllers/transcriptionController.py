@@ -11,6 +11,7 @@ from models import TranscriptTest, UserTranscript
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from pydantic import BaseModel
+from flask import render_template
 
 
 # TODO tune prompt to perfection so scoring is more accurate
@@ -241,3 +242,11 @@ def get_tests():
         'status': 'success',
         'tests': [test.serialize() for test in tests]
     })
+
+
+def take_tests():
+    test_id = datetime.now().strftime("%Y%m%d%H%M%S")
+    tests = TranscriptTest.query.all()
+    logging.info(f"Starting test: {test_id}")
+    logging.info(f"Available tests: {tests}")
+    return render_template('take_test.html', test_id=test_id, tests=tests)
