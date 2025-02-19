@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="{{ url_for('static', filename='take_test.js') }}"></script>
     <title>Testing Page</title>
   </head>
   <!-- store all tests in jinja var -->
@@ -11,7 +13,11 @@
 
   <body>
     <h2>Available Tests</h2>
-    {% set all_tests = tests%} First test: {{ all_tests[0].name_of_test }} {% if tests %}
+
+    {% if tests %}
+    <p>Number of tests: {{ tests|length }}</p>
+    {% set all_tests = tests %} {% set current_test = all_tests[0] %}
+    <p>First test: {{ current_test.name_of_test }}</p>
     <ul>
       {% for test in tests %}
       <li>
@@ -21,14 +27,15 @@
         <p>Bad Transcript: {{ test.bad_transcript|truncate(100) }}</p>
         <p>Audio File: {{ test.audio_file_path }}</p>
         <p>SRT File: {{ test.srt_file_path }}</p>
-        <!-- Add more test details as needed -->
       </li>
       {% endfor %}
+
+      <input id="current-test-index" value="0" />
+      <input id="total-tests" value="{{ tests|length }}" />
     </ul>
     {% else %}
     <p>No tests available.</p>
     {% endif %}
-
     <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
       <h1 class="text-2xl font-bold">CaptionCall Assessment</h1>
       <!-- <a href="/transcription/create_test">Create new test</a> -->
@@ -63,6 +70,7 @@
     <div class="container p-4">
       <input id="srt-to-stream" class="hidden" value="{{srt_file}}" />
       <input id="test-id" class="hidden" value="{{test_id}}" />
+
       <div class="space-y-4 justify-items-center">
         <div class="w-full text-center text-sm text-gray-500" id="time-display">
           0:00:00
@@ -167,7 +175,16 @@
         </div>
       </div>
     </div>
-
+    <script>
+      console.log('Document fully loaded and parsed');
+      /* let currentTestIndex = 0;
+      const totalTests = parseInt(document.getElementById('total-tests').value);
+      const tests = JSON.parse({{ tests | tojson | safe }});
+      const currentCall = tests[0]
+      //will need audio link and srt file location from testItem
+      console.log('tests', tests);
+      console.log('test 1', tests[0]) */
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
   </body>

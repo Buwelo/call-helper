@@ -1,7 +1,7 @@
 import os
 from typing import List
 from venv import logger
-from flask import jsonify, request
+from flask import json, jsonify, request
 from flask_login import current_user
 import logging
 from openai import OpenAI, beta
@@ -245,8 +245,15 @@ def get_tests():
 
 
 def take_tests():
-    test_id = datetime.now().strftime("%Y%m%d%H%M%S")
     tests = TranscriptTest.query.all()
-    logging.info(f"Starting test: {test_id}")
-    logging.info(f"Available tests: {tests}")
-    return render_template('take_test.html', test_id=test_id, tests=tests)
+    tests_data = []
+    for test in tests:
+        tests_data.append({
+            'id': test.id,
+            'name_of_test': test.name_of_test,
+            'good_transcript': test.good_transcript,
+            'bad_transcript': test.bad_transcript,
+            'audio_file_path': test.audio_file_path,
+            'srt_file_path': test.srt_file_path
+        })
+    return render_template('take_test.html', tests=tests_data)
