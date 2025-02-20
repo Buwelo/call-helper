@@ -61,7 +61,7 @@
     </script>
     <div class="container p-4">
       <input id="srt-to-stream" class="hidden" value="{{current_test.srt_file_path}}" />
-      <input id="test-id" class="hidden" value="{{current_test.id}}" />
+      <input id="test-id" class="" value="{{current_test.id}}" />
 
       <div class="space-y-4 justify-items-center">
         <h2 id="current-test" class="text-xl font-bold">
@@ -217,12 +217,13 @@
 
         function loadTest(index) {
           if (index < tests.length) {
+            audioPlayer.pause();
+
             const currentTest = tests[index];
             console.log('Loading test:', currentTest);
-
             audioPlayer.src = "{{url_for('static', filename='')}}" + currentTest.audio_file_path;
 
-            editableTranscript.value = '';
+            // editableTranscript.value = '';
 
             srtToStream.value = currentTest.srt_file_path;
 

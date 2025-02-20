@@ -12,6 +12,7 @@ window.addEventListener('load', function () {
   };
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
+    elements.editableTranscript.value = '';
     elements.audioPlayer.play();
   });
 
@@ -30,6 +31,7 @@ window.addEventListener('load', function () {
     socket: null,
     lastTime: -1,
     transcriptHistory: [], // Store transcript segments
+    transcriptions: [], // Store transcriptions to be sent to server
   };
 
   // Audio Player Event Handlers
@@ -145,23 +147,32 @@ window.addEventListener('load', function () {
     elements.audioPlayer.pause();
   };
 
+  let initialTestId = elements.testId.value;
+
   // Score Submission
   elements.nextButton.addEventListener('click', e => {
     e.preventDefault();
     stopAudio();
     elements.audioPlayer.controls = true;
 
-    // const transcriptValue = elements.editableTranscript.value.trim();
+    const transcriptValue = elements.editableTranscript.value.trim();
 
-    // if (transcriptValue.length <= 15) {
-    //   alert('Transcript is too short. Please provide a more substantial submission.');
-    //   return;
-    // }
+    if (transcriptValue.length <= 15) {
+      alert('Transcript is too short. Please provide a more substantial submission.');
+      return;
+    }
 
-    // const data = {
-    //   transcript: transcriptValue,
-    // };
+    let userTranscriptItem = {
+      testId: initialTestId,
+      transcript: transcriptValue,
+    };
 
+    state.transcriptions.push(userTranscriptItem);
+
+    console.log('Test ID for this transcript:', initialTestId);
+    console.log(state.transcriptions);
+
+    initialTestId = elements.testId.value;
     // const testId = elements.testId.value;
     // fetch(`/transcription/score-transcription/${testId}`, {
     //   method: 'POST',
