@@ -16,8 +16,7 @@
 
     {% if tests %}
     <p>Number of tests: {{ tests|length }}</p>
-    {% set all_tests = tests %} 
-    {% set current_test = all_tests[0] %}
+    {% set all_tests = tests %} {% set current_test = all_tests[0] %}
     <p>First test: {{ current_test.name_of_test }}</p>
     <ul>
       {% for test in tests %}
@@ -33,6 +32,9 @@
 
       <input id="current-test-index" value="0" />
       <input id="total-tests" value="{{ tests|length }}" />
+      <script id="tests-data" type="application/json">
+        {{ all_tests|tojson|safe }}
+      </script>
     </ul>
     {% else %}
     <p>No tests available.</p>
@@ -73,6 +75,9 @@
       <input id="test-id" class="hidden" value="{{current_test.id}}" />
 
       <div class="space-y-4 justify-items-center">
+        <h2 id="current-test" class="text-xl font-bold">
+          Current Test: <span id="current-test-name">{{current_test.name_of_test}}</span>
+        </h2>
         <div class="w-full text-center text-sm text-gray-500" id="time-display">
           0:00:00
           <button
@@ -116,11 +121,11 @@
           </div>
 
           <button
-            type="submit"
-            id="submit"
+            type="button"
+            id="next"
             class="mt-4 px-6 py-3.5 text-base font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
-            Submit
+            Next
           </button>
         </form>
 
@@ -181,14 +186,78 @@
       Your browser does not support the audio element.
     </audio>
     <script>
-      console.log('Document fully loaded and parsed');
-      /* let currentTestIndex = 0;
-      const totalTests = parseInt(document.getElementById('total-tests').value);
-      const tests = JSON.parse({{ tests | tojson | safe }});
-      const currentCall = tests[0]
-      //will need audio link and srt file location from testItem
-      console.log('tests', tests);
-      console.log('test 1', tests[0]) */
+      document.addEventListener('DOMContentLoaded', function () {
+        console.log('Document fully loaded and parsed');
+
+        let currentTestIndex = 0;
+        const totalTestsInput = document.getElementById('total-tests');
+        const testsDataScript = document.getElementById('tests-data');
+        const nextButton = document.getElementById('next');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const editableTranscript = document.getElementById('editable-transcript');
+        const srtToStream = document.getElementById('srt-to-stream');
+        const testIdInput = document.getElementById('test-id');
+        const currentTestNameElement = document.getElementById('current-test-name');
+
+        let tests = [];
+
+        if (!totalTestsInput || !testsDataScript || !nextButton) {
+          console.error('Required elements not found');
+        } else {
+          const totalTests = parseInt(totalTestsInput.value, 10);
+          const testsJson = testsDataScript.textContent;
+
+          try {
+            tests = JSON.parse(testsJson);
+            console.log('Tests parsed successfully:', tests);
+            loadTest(currentTestIndex);
+          } catch (error) {
+            console.error('Error parsing tests JSON:', error);
+            console.error('Raw JSON string:', testsJson);
+          }
+
+          nextButton.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent form submission
+            currentTestIndex++;
+            if (currentTestIndex < tests.length) {
+              loadTest(currentTestIndex);
+            } else {
+              console.log('All tests completed');
+              // You can add code here to handle the completion of all tests
+            }
+          });
+        }
+
+        function loadTest(index) {
+          if (index < tests.length) {
+            const currentTest = tests[index];
+            console.log('Loading test:', currentTest);
+
+            // Update audio source
+            audioPlayer.src = "{{url_for('static', filename='')}}" + currentTest.audio_file_path;
+
+            // Update editable transcript (you might want to clear it or set it to a default value)
+            editableTranscript.value = '';
+
+            // Update SRT file path
+            srtToStream.value = currentTest.srt_file_path;
+
+            // Update test ID
+            testIdInput.value = currentTest.id;
+
+            // Update the current test name
+            if (currentTestNameElement) {
+              currentTestNameElement.textContent = currentTest.name_of_test;
+            } else {
+              console.error('Current test name element not found');
+            }
+
+            console.log('Test loaded:', currentTest.name_of_test);
+          } else {
+            console.log('No more tests available');
+          }
+        }
+      });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
