@@ -172,7 +172,10 @@ window.addEventListener('load', function () {
     console.log('Test ID for this transcript:', initialTestId);
     console.log(state.transcriptions);
 
-    initialTestId = elements.testId.value;
+	  initialTestId = elements.testId.value;
+	  
+	  //   TODO implement promise.all to send all transcriptions at once
+	  
     // const testId = elements.testId.value;
     // fetch(`/transcription/score-transcription/${testId}`, {
     //   method: 'POST',
