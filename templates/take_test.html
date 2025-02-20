@@ -12,26 +12,15 @@
   <!-- TODO transcriptions done should have a testid attached to attach to them and help to find test aggregate score -->
 
   <body>
-    <h2>Available Tests</h2>
+    <!-- <h2>Available Tests</h2> -->
 
     {% if tests %}
-    <p>Number of tests: {{ tests|length }}</p>
+    <!-- <p>Number of tests: {{ tests|length }}</p> -->
     {% set all_tests = tests %} {% set current_test = all_tests[0] %}
-    <p>First test: {{ current_test.name_of_test }}</p>
-    <ul>
-      {% for test in tests %}
-      <li>
-        <h3>{{ test.name_of_test }}</h3>
-        <p>Test ID: {{ test.id }}</p>
-        <p>Good Transcript: {{ test.good_transcript|truncate(100) }}</p>
-        <p>Bad Transcript: {{ test.bad_transcript|truncate(100) }}</p>
-        <p>Audio File: {{ test.audio_file_path }}</p>
-        <p>SRT File: {{ test.srt_file_path }}</p>
-      </li>
-      {% endfor %}
 
-      <input id="current-test-index" value="0" />
-      <input id="total-tests" value="{{ tests|length }}" />
+    <ul>
+      <input id="current-test-index" value="0" class="hidden" />
+      <input id="total-tests" value="{{ tests|length }}" class="hidden" />
       <script id="tests-data" type="application/json">
         {{ all_tests|tojson|safe }}
       </script>
@@ -78,17 +67,14 @@
         <h2 id="current-test" class="text-xl font-bold">
           Current Test: <span id="current-test-name">{{current_test.name_of_test}}</span>
         </h2>
-        <div class="w-full text-center text-sm text-gray-500" id="time-display">
-          0:00:00
-          <button
-            type="button"
-            class="mx-auto block focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-            id="start-test"
-          >
-            Start Test
-          </button>
-        </div>
-
+        <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
+        <button
+          type="button"
+          class="mx-auto block focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+          id="start-test"
+        >
+          Start Test
+        </button>
         <form>
           <div class="transcription-container flex gap-4 w-full justify-center">
             <div class="">
@@ -201,6 +187,7 @@
 
         let tests = [];
 
+        const state = [];
         if (!totalTestsInput || !testsDataScript || !nextButton) {
           console.error('Required elements not found');
         } else {
@@ -233,16 +220,12 @@
             const currentTest = tests[index];
             console.log('Loading test:', currentTest);
 
-            // Update audio source
             audioPlayer.src = "{{url_for('static', filename='')}}" + currentTest.audio_file_path;
 
-            // Update editable transcript (you might want to clear it or set it to a default value)
             editableTranscript.value = '';
 
-            // Update SRT file path
             srtToStream.value = currentTest.srt_file_path;
 
-            // Update test ID
             testIdInput.value = currentTest.id;
 
             // Update the current test name
@@ -251,8 +234,6 @@
             } else {
               console.error('Current test name element not found');
             }
-
-            console.log('Test loaded:', currentTest.name_of_test);
           } else {
             console.log('No more tests available');
           }

@@ -112,7 +112,7 @@ window.addEventListener('load', function () {
   // Initialize Audio Player
   if (elements.audioPlayer) {
     elements.audioPlayer.addEventListener('play', () => {
-      elements.audioPlayer.controls = false;
+      elements.audioPlayer.controls = true;
       state.socket.emit('request_transcription', {
         currentTime: elements.audioPlayer.currentTime,
         srt_file: elements.srtToStream.value,
