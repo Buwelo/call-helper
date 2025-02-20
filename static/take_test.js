@@ -1,3 +1,141 @@
 window.addEventListener('load', function () {
+  const elements = {
+    audioPlayer: document.getElementById('audioPlayer'),
+    // transcript: document.getElementById('transcript'),
+    timeDisplay: document.getElementById('time-display'),
+    editableTranscript: document.getElementById('editable-transcript'),
+    // submitButton: document.getElementById('submit'),
+    // scoreModalBody: document.getElementById('score-modal-body'),
+    startTestButton: document.getElementById('start-test'),
+    srtToStream: document.getElementById('srt-to-stream'),
+    // testId: document.getElementById('test-id'),
+  };
+  elements.startTestButton.addEventListener('click', e => {
+    e.preventDefault();
+    elements.audioPlayer.play();
+  });
 
+  // Utility functions
+  const formatTime = time => {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor(time % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
+  };
+
+  // State management
+  const state = {
+    socket: null,
+    lastTime: -1,
+    transcriptHistory: [], // Store transcript segments
+  };
+
+  // Audio Player Event Handlers
+  const handleTimeUpdate = () => {
+    const currentTime = elements.audioPlayer.currentTime;
+    elements.timeDisplay.textContent = formatTime(currentTime);
+
+    // console.log(elements.srtToStream.value);
+
+    if (Math.abs(currentTime - state.lastTime) >= 0.1) {
+      state.lastTime = currentTime;
+      state.socket.emit('request_transcription', {
+        currentTime: currentTime,
+        srt_file: elements.srtToStream.value,
+      });
+    }
+  };
+
+  // Initialize WebSocket connection
+  const initializeWebSocket = () => {
+    state.socket = io();
+
+    state.socket.on('connect', () => {
+      console.log('WebSocket connected');
+    });
+
+    state.socket.on('transcription_segment', data => {
+      //when piece of data is received from server, update transcript and editable transcript
+      updateEditableTranscript(data);
+    });
+
+    state.socket.on('disconnect', () => {
+      console.log('WebSocket disconnected');
+    });
+  };
+
+  const updateEditableTranscript = data => {
+    if (!data.text) return;
+
+    // Split the current transcript and new text into lines
+    const currentLines = elements.editableTranscript.value.split('\n');
+    const newLines = data.text.split('\n');
+
+    // Filter out duplicate lines
+    const uniqueNewLines = newLines.filter(line => !currentLines.includes(line.trim()));
+
+    // If there are no new unique lines, return early
+    if (uniqueNewLines.length === 0) return;
+    // Save current state
+    const cursorPosition = elements.editableTranscript.selectionStart;
+    const cursorEnd = elements.editableTranscript.selectionEnd;
+    const scrollTop = elements.editableTranscript.scrollTop;
+    const wasAtBottom =
+      scrollTop + elements.editableTranscript.clientHeight >= elements.editableTranscript.scrollHeight - 5;
+
+    // Update content
+    let newValue = elements.editableTranscript.value;
+    if (newValue && !newValue.endsWith('\n')) newValue += '\n';
+    newValue += uniqueNewLines.join('\n');
+
+    elements.editableTranscript.value = newValue;
+
+    // Restore cursor position or keep at end
+    if (cursorPosition !== elements.editableTranscript.value.length - data.text.length - 1) {
+      elements.editableTranscript.setSelectionRange(cursorPosition, cursorEnd);
+      elements.editableTranscript.scrollTop = scrollTop;
+    } else {
+      elements.editableTranscript.setSelectionRange(newValue.length, newValue.length);
+      if (wasAtBottom) {
+        elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
+      }
+    }
+
+    // Auto-scroll if user hasn't scrolled up
+    if (wasAtBottom) {
+      elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
+    }
+  };
+
+  // Initialize Audio Player
+  if (elements.audioPlayer) {
+    elements.audioPlayer.addEventListener('play', () => {
+      elements.audioPlayer.controls = false;
+      state.socket.emit('request_transcription', {
+        currentTime: elements.audioPlayer.currentTime,
+        srt_file: elements.srtToStream.value,
+      });
+    });
+
+    elements.audioPlayer.addEventListener('ended', () => {
+      elements.audioPlayer.controls = true;
+    });
+
+    elements.audioPlayer.addEventListener('timeupdate', handleTimeUpdate);
+    elements.audioPlayer.addEventListener('seeking', () => {
+      state.transcriptHistory = []; // Clear history when seeking
+      elements.transcript.value = '';
+    });
+
+    // elements.audioPlayer.addEventListener('seeked', () => {
+    //   state.socket.emit('request_transcription', {
+
+    //   });
+    // });
+  }
+
+  // Initialize WebSocket connection
+  initializeWebSocket();
 });

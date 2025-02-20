@@ -16,7 +16,8 @@
 
     {% if tests %}
     <p>Number of tests: {{ tests|length }}</p>
-    {% set all_tests = tests %} {% set current_test = all_tests[0] %}
+    {% set all_tests = tests %} 
+    {% set current_test = all_tests[0] %}
     <p>First test: {{ current_test.name_of_test }}</p>
     <ul>
       {% for test in tests %}
@@ -68,8 +69,8 @@
       // console.log('test srt', "{{srt_file}}");
     </script>
     <div class="container p-4">
-      <input id="srt-to-stream" class="hidden" value="{{srt_file}}" />
-      <input id="test-id" class="hidden" value="{{test_id}}" />
+      <input id="srt-to-stream" class="hidden" value="{{current_test.srt_file_path}}" />
+      <input id="test-id" class="hidden" value="{{current_test.id}}" />
 
       <div class="space-y-4 justify-items-center">
         <div class="w-full text-center text-sm text-gray-500" id="time-display">
@@ -175,6 +176,10 @@
         </div>
       </div>
     </div>
+    <audio controls class="w-100 invisible" id="audioPlayer">
+      <source src="{{url_for('static', filename='' +  current_test.audio_file_path )}}" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
     <script>
       console.log('Document fully loaded and parsed');
       /* let currentTestIndex = 0;
