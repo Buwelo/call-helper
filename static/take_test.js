@@ -201,6 +201,40 @@ window.addEventListener('load', function () {
           console.log('All transcriptions submitted successfully.', results);
           alert('Your test results have been submitted. Thank you!');
           // TODO redirect user to the results page or show modal with scores
+
+          modal.show();
+          const scoreHTML = results
+            .map(result => {
+              const gptScore = JSON.parse(result.gpt_score);
+
+              let scoreItemsHTML = gptScore.score_items
+                .map(
+                  item => `
+                <div class="score-item mb-4">
+                  <h4 class="font-semibold mb-1">${item.category}</h4>
+                  <p class="mb-1">Score: ${item.assigned_score}/100</p>
+                  <p>${item.comment}</p>
+                </div>
+              `
+                )
+                .join('');
+              return `
+              <div class="test-result mb-5">
+                <div class="overall-score text-xl font-bold mb-3">
+                  <h4>Overall Score: ${gptScore.overall_score}%</h4>
+                </div>
+                <div class="score-items space-y-4">
+                  ${scoreItemsHTML}
+                </div>
+                <div class="summary mt-4 italic">
+                  <h4 class="font-semibold mb-1">Summary:</h4>
+                  <p>${gptScore.summary}</p>
+                </div>
+              </div>
+            `;
+            })
+            .join('<hr>');
+          elements.scoreModalBody.innerHTML = scoreHTML;
         })
         .catch(error => {
           console.error('Error submitting transcriptions:', error);
