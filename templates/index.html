@@ -9,14 +9,15 @@
         --color-clifford: #da373d;
       }
     </style>
-    <title>CaptionCall Trainer</title>
+    <title>Listening Assessment</title>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.css" rel="stylesheet" />
   </head>
   <body>
+    {% include 'components/spinner.html' %}
     <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
-      <h1 class="text-2xl font-bold">CaptionCall Tester</h1>
+      <h1 class="text-2xl font-bold">Listening Assessment test</h1>
       <a href="/transcription/create_test">Create new test</a>
 
       <div class="relative">
@@ -69,7 +70,6 @@
 
         <form>
           <div class="transcription-container flex gap-4 w-full justify-center">
-            
             <div class="">
               {% include 'components/welcome_banner.html' %}
               <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900"> </label>
@@ -78,8 +78,8 @@
                 id="editable-transcript"
                 class="block p-2.5 w-full text-lg text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-y"
                 placeholder="Full transcript streams here..."
-                rows="20"
-                cols="30"
+                rows="15"
+                cols="20"
                 autocomplete="off"
                 autocorrect="off"
                 spellcheck="false"

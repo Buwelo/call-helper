@@ -11,12 +11,26 @@ window.addEventListener('load', function () {
     testId: document.getElementById('test-id'),
     testStatus: document.getElementById('test-status'),
     testingId: document.getElementById('testing-id'),
+    spinner: document.getElementById('loading-spinner'),
   };
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
     elements.editableTranscript.value = '';
     elements.audioPlayer.play();
   });
+
+  // Hide spinner when page is loaded
+  elements.spinner.style.display = 'none';
+
+  // Show spinner before loading a new test
+  function showSpinner() {
+    elements.spinner.style.display = 'flex';
+  }
+
+  // Hide spinner after loading a test
+  function hideSpinner() {
+    elements.spinner.style.display = 'none';
+  }
 
   // Utility functions
   const formatTime = time => {
@@ -151,7 +165,6 @@ window.addEventListener('load', function () {
 
   let initialTestId = elements.testId.value;
 
-  // Score Submission
   elements.nextButton.addEventListener('click', e => {
     e.preventDefault();
     stopAudio();
@@ -182,7 +195,7 @@ window.addEventListener('load', function () {
       console.log(state.transcriptions);
 
       elements.nextButton.disabled = true;
-
+      showSpinner();
       const submissionPromises = state.transcriptions.map(async item => {
         return fetch('/transcription/score-transcription/' + item.testId, {
           method: 'POST',
@@ -208,7 +221,7 @@ window.addEventListener('load', function () {
           const scoreHTML = results
             .map(result => {
               const gptScore = JSON.parse(result.gpt_score);
-
+              hideSpinner();
               let scoreItemsHTML = gptScore.score_items
                 .map(
                   item => `

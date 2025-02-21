@@ -12,6 +12,8 @@
   <!-- TODO transcriptions done should have a testid attached to attach to them and help to find test aggregate score -->
 
   <body>
+    {% include 'components/spinner.html' %}
+
     <!-- <h2>Available Tests</h2> -->
 
     {% if tests %}
@@ -29,8 +31,8 @@
     <p>No tests available.</p>
     {% endif %}
     <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
-      <h1 class="text-2xl font-bold">CaptionCall Assessment</h1>
-      <input id="testing-id" value="{{testing_id}}" class="" />
+      <h1 class="text-2xl font-bold">Listening Assessment</h1>
+      <input id="testing-id" value="{{testing_id}}" class="hidden" />
       <div class="relative">
         <button
           class="flex items-center space-x-2 focus:outline-none"
@@ -63,14 +65,14 @@
 
       <input id="srt-to-stream" class="hidden" value="{{current_test.srt_file_path}}" />
       <input id="test-id" class="hidden" value="{{current_test.id}}" />
-      <input id="test-status" class="" value="" />
+      <input id="test-status" class="hidden" value="" />
 
       <div class="m-4">
         {% include 'components/welcome_banner.html' %}
         <h2 id="current-test" class="text-xl font-bold">
           Current Test: <span id="current-test-name">{{current_test.name_of_test}}</span>
         </h2>
-        <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
+        <div class="w-full text-center text-md text-gray-500" id="time-display">0:00:00</div>
 
         <form>
           <div class="transcription-container flex gap-4 w-full justify-center">
@@ -88,8 +90,8 @@
                 id="editable-transcript"
                 class="block p-2.5 w-full text-lg text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-y"
                 placeholder="Full transcript streams here..."
-                rows="20"
-                cols="30"
+                rows="15"
+                cols="20"
                 autocomplete="off"
                 autocorrect="off"
                 spellcheck="false"
@@ -213,6 +215,8 @@
             }
           });
         }
+
+     
 
         function loadTest(index) {
           if (index < tests.length) {
