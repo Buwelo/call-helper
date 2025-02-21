@@ -167,17 +167,49 @@ window.addEventListener('load', function () {
       testId: initialTestId,
       transcript: transcriptValue,
     };
-    // TODO add control to prevent re-submitting the same transcript
 
-    state.transcriptions.push(userTranscriptItem);
-
-    if (elements.testStatus.value === 'completed') {
-      console.log('submitting test');
+    if (!state.transcriptions.some(item => item.testId === userTranscriptItem.testId)) {
+      state.transcriptions.push(userTranscriptItem);
+    } else {
+      console.log('Transcript for this test ID already exists.');
     }
 
-    console.log('Test ID for this transcript:', initialTestId);
-    console.log(state.transcriptions);
-
     initialTestId = elements.testId.value;
+    if (elements.testStatus.value === 'completed') {
+      console.log('submitting test');
+      console.log(state.transcriptions);
+
+      elements.nextButton.disabled = true;
+
+      const submissionPromises = state.transcriptions.map(async item => {
+        return fetch('/transcription/score-transcription/' + item.testId, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(item),
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        });
+      });
+
+      Promise.all(submissionPromises)
+        .then(results => {
+          console.log('All transcriptions submitted successfully.', results);
+          alert('Your test results have been submitted. Thank you!');
+          // TODO redirect user to the results page or show modal with scores
+        })
+        .catch(error => {
+          console.error('Error submitting transcriptions:', error);
+          alert('Error submitting test results. Please try again.');
+          elements.nextButton.disabled = false;
+        })
+        .finally(() => {
+          state.transcriptions = [];
+        });
+    }
   });
 });
