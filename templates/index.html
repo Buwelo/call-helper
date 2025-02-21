@@ -10,8 +10,7 @@
       }
     </style>
     <title>CaptionCall Trainer</title>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.css" rel="stylesheet" />
   </head>
@@ -51,6 +50,7 @@
         const menu = document.getElementById('user-menu');
         menu.classList.toggle('hidden');
       }
+      // console.log('test srt', "{{srt_file}}");
     </script>
     <div class="container p-4">
       <input id="srt-to-stream" class="hidden" value="{{srt_file}}" />
