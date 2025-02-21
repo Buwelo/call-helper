@@ -41,7 +41,7 @@ def login():
         if user:
             login_user(user=user, remember=remember_me)
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('home'))
+            return redirect(url_for('index'))
         else:
             random_digits = ''.join(random.choices(string.digits, k=2))
             username = f"{first_name}_{last_name[:2]}{random_digits}"
@@ -54,7 +54,7 @@ def login():
             db.session.add(user)
             db.session.commit()
             login_user(user=user, remember=remember_me)
-            return redirect(url_for('home'))
+            return redirect(url_for('index'))
 
     return render_template('auth/login.html')
 

@@ -10,12 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
     startTestButton: document.getElementById('start-test'),
     srtToStream: document.getElementById('srt-to-stream'),
     testId: document.getElementById('test-id'),
+    spinner: document.getElementById('loading-spinner'),
   };
 
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
     elements.audioPlayer.play();
   });
+  // Hide spinner when page is loaded
+  elements.spinner.style.display = 'none';
+
+  // Show spinner before loading a new test
+  function showSpinner() {
+    elements.spinner.style.display = 'flex';
+  }
+
+  // Hide spinner after loading a test
+  function hideSpinner() {
+    elements.spinner.style.display = 'none';
+  }
 
   // State management
   const state = {
@@ -196,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const testId = elements.testId.value;
+    showSpinner();
     fetch(`/transcription/score-transcription/${testId}`, {
       method: 'POST',
       headers: {
@@ -223,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let scoreHTML = '';
 
         if (scoreData && typeof scoreData === 'object') {
+          hideSpinner();
           // Display individual score items
           if (Array.isArray(scoreData.score_items)) {
             scoreData.score_items.forEach(item => {
@@ -246,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `;
         } else {
+          hideSpinner();
+
           scoreHTML += '<p>Unable to parse score data. Please try again.</p>';
         }
 
