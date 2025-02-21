@@ -28,8 +28,15 @@ def unauthorized():
     return redirect(url_for('auth.login'))
 
 
+
 @app.route('/')
 @login_required
+def index():
+    return render_template('home.html')
+
+@app.route('/practice')
+@login_required
+
 def home():
     tests = [test.serialize() for test in TranscriptTest.query.all()]
     if not tests:
