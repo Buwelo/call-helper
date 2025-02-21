@@ -1,0 +1,22 @@
+.test-result {
+	margin-bottom: 20px;
+  }
+  
+  .overall-score {
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-bottom: 10px;
+  }
+  
+  .score-item {
+	margin-bottom: 15px;
+  }
+  
+  .score-item h4 {
+	margin-bottom: 5px;
+  }
+  
+  .summary {
+	margin-top: 15px;
+	font-style: italic;
+  }

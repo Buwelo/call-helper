@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <p>tests_per_month</p>
+    {{tests_per_month}}
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-center mb-8">Stats</h1>
+
+      <div class="grid  gap-8">
+        <div class="bg-white rounded-lg shadow-md p-6 h-96 overflow-auto">
+          <h2 class="text-xl font-semibold mb-4">Leaderboard</h2>
+          <table id="leaderboardTable" class="w-full">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="py-2 px-4 text-left">Rank</th>
+                <th class="py-2 px-4 text-left">Name</th>
+                <th class="py-2 px-4 text-left">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Leaderboard data will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script></script>
+  </body>
+</html>

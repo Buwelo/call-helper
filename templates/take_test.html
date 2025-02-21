@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="{{ url_for('static', filename='take_test.js') }}"></script>
+    <title>Testing Page</title>
+  </head>
+  <!-- store all tests in jinja var -->
+
+  <!-- TODO transcriptions done should have a testid attached to attach to them and help to find test aggregate score -->
+
+  <body>
+    <!-- <h2>Available Tests</h2> -->
+
+    {% if tests %}
+    <!-- <p>Number of tests: {{ tests|length }}</p> -->
+    {% set all_tests = tests %} {% set current_test = all_tests[0] %}
+
+    <ul>
+      <input id="current-test-index" value="0" class="hidden" />
+      <input id="total-tests" value="{{ tests|length }}" class="hidden" />
+      <script id="tests-data" type="application/json">
+        {{ all_tests|tojson|safe }}
+      </script>
+    </ul>
+    {% else %}
+    <p>No tests available.</p>
+    {% endif %}
+    <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
+      <h1 class="text-2xl font-bold">CaptionCall Assessment</h1>
+      <input id="testing-id" value="{{testing_id}}" class="" />
+      <div class="relative">
+        <button
+          class="flex items-center space-x-2 focus:outline-none"
+          id="user-menu-button"
+          aria-expanded="false"
+          aria-haspopup="true"
+          onclick="toggleUserMenu()"
+        >
+          <svg class="w-8 h-8 rounded-full" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+            />
+          </svg>
+          <span class="text-sm font-medium text-gray-700">User</span>
+        </button>
+        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden" id="user-menu">
+          <a href="auth/logout" class="block px-4 py-2 text-sm text-gray-700 whitespace-nowrap">Sign Out</a>
+        </div>
+      </div>
+    </header>
+    <script>
+      function toggleUserMenu() {
+        const menu = document.getElementById('user-menu');
+        menu.classList.toggle('hidden');
+      }
+      // console.log('test srt', "{{srt_file}}");
+    </script>
+    <div class="container">
+      <div id="transcriptions-display"></div>
+
+      <input id="srt-to-stream" class="hidden" value="{{current_test.srt_file_path}}" />
+      <input id="test-id" class="hidden" value="{{current_test.id}}" />
+      <input id="test-status" class="" value="" />
+
+      <div class="m-4">
+        <div
+          id="welcome-banner"
+          class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg"
+        >
+          <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
+          <p class="text-md font-semibold">
+            Please Instructions: Modify the text of the conversation as your hear it, correcting inaccuracies and adding
+            audio cues like [YAWN] as necessary. Please use only directional keys and mouse to navigate ⬆️⬇️⬅️➡️
+          </p>
+        </div>
+        <h2 id="current-test" class="text-xl font-bold">
+          Current Test: <span id="current-test-name">{{current_test.name_of_test}}</span>
+        </h2>
+        <div class="w-full text-center text-sm text-gray-500" id="time-display">0:00:00</div>
+
+        <form>
+          <div class="transcription-container flex gap-4 w-full justify-center">
+            <div class="w-full">
+              <button
+                type="button"
+                class="mx-auto block focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                id="start-test"
+              >
+                Play
+              </button>
+              <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900"> </label>
+
+              <textarea
+                id="editable-transcript"
+                class="block p-2.5 w-full text-lg text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-y"
+                placeholder="Full transcript streams here..."
+                rows="20"
+                cols="30"
+                autocomplete="off"
+                autocorrect="off"
+                spellcheck="false"
+              ></textarea>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="next"
+            class="mt-4 px-6 py-3.5 text-base font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Next
+          </button>
+        </form>
+
+        <!-- Main modal -->
+        <div
+          id="score-results-modal"
+          data-modal-backdrop="static"
+          tabindex="-1"
+          aria-hidden="true"
+          class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full"
+        >
+          <div class="relative p-4 w-full max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+              <!-- Modal header -->
+              <div
+                class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200"
+              >
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Score Breakdown</h3>
+                <button
+                  type="button"
+                  id="close-modal-button"
+                  class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  data-modal-hide="score-results-modal"
+                >
+                  <svg
+                    class="w-3 h-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Close modal</span>
+                </button>
+              </div>
+              <!-- Modal body -->
+              <div class="p-4 md:p-5 space-y-4 text-white" id="score-modal-body">
+                <p class="text-white">Loading score...</p>
+              </div>
+
+              <!-- Modal footer -->
+              <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <audio controls class="w-100 invisible" id="audioPlayer">
+      <source src="{{url_for('static', filename='' +  current_test.audio_file_path )}}" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        console.log('Document fully loaded and parsed');
+
+        let currentTestIndex = 0;
+        const totalTestsInput = document.getElementById('total-tests');
+        const testsDataScript = document.getElementById('tests-data');
+        const nextButton = document.getElementById('next');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const editableTranscript = document.getElementById('editable-transcript');
+        const srtToStream = document.getElementById('srt-to-stream');
+        const testIdInput = document.getElementById('test-id');
+        const currentTestNameElement = document.getElementById('current-test-name');
+
+        let tests = [];
+        if (!totalTestsInput || !testsDataScript || !nextButton) {
+          console.error('Required elements not found');
+        } else {
+          const totalTests = parseInt(totalTestsInput.value, 10);
+          const testsJson = testsDataScript.textContent;
+
+          try {
+            tests = JSON.parse(testsJson);
+            console.log('Tests parsed successfully:', tests);
+            loadTest(currentTestIndex);
+          } catch (error) {
+            console.error('Error parsing tests JSON:', error);
+            console.error('Raw JSON string:', testsJson);
+          }
+
+          nextButton.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent form submission
+            currentTestIndex++;
+            if (currentTestIndex < tests.length) {
+              loadTest(currentTestIndex);
+
+              if (currentTestIndex === tests.length - 1) {
+                nextButton.innerText = 'Submit';
+              }
+            } else {
+              if (currentTestIndex === tests.length - 1) {
+                nextButton.innerText = 'Submit Test';
+              }
+              console.log('All tests completed');
+
+              const testStatus = document.getElementById('test-status');
+              testStatus.value = 'completed';
+              console.log('testStatus', testStatus);
+            }
+          });
+        }
+
+        function loadTest(index) {
+          if (index < tests.length) {
+            audioPlayer.pause();
+
+            const currentTest = tests[index];
+            console.log('Loading test:', currentTest);
+            audioPlayer.src = "{{url_for('static', filename='')}}" + currentTest.audio_file_path;
+
+            // editableTranscript.value = '';
+
+            srtToStream.value = currentTest.srt_file_path;
+
+            testIdInput.value = currentTest.id;
+
+            // Update the current test name
+            if (currentTestNameElement) {
+              currentTestNameElement.textContent = currentTest.name_of_test;
+            } else {
+              console.error('Current test name element not found');
+            }
+          } else {
+            console.log('No more tests available');
+          }
+        }
+      });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.1/dist/flowbite.min.js"></script>
+  </body>
+</html>

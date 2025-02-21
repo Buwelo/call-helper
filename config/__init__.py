@@ -24,8 +24,10 @@ def create_app(config_name='development'):
     with app.app_context():
         from routes.auth import auth
         from routes.transcript import transcription
+        from routes.analytics import analytics
         app.register_blueprint(auth, url_prefix='/auth')
         app.register_blueprint(transcription, url_prefix='/transcription')
+        app.register_blueprint(analytics, url_prefix='/analytics')
 
     logger.info(f'App started: {config_name}')
     return app

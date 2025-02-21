@@ -1,7 +1,7 @@
 import os
 from typing import List
 from venv import logger
-from flask import jsonify, request
+from flask import json, jsonify, request
 from flask_login import current_user
 import logging
 from openai import OpenAI, beta
@@ -11,7 +11,8 @@ from models import TranscriptTest, UserTranscript
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from pydantic import BaseModel
-
+from flask import render_template
+import json
 
 # TODO tune prompt to perfection so scoring is more accurate
 
@@ -49,7 +50,15 @@ def score_transcription(id):
 
     # Get the user submitted transcript from the request
     user_submitted_transcript = request.json.get('transcript')
+    data = request.get_json()
 
+    testingId = data.get('testingId')
+
+    logger.info(f"request : {request}")
+    logger.info(f"Testing ID: {testingId}")
+
+
+    logger.info(f"Data: {data}")
     # Fetch the test data using the id
     test_data = TranscriptTest.query.get(id)
 
@@ -87,7 +96,6 @@ def score_transcription(id):
         Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
         Provide an overall percentage score for the entire test, calculated as: (audio cues score + contextual corrections score + punctuation score) / 300 * 100 = Overall Percentage Score.
         """
-
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",
@@ -101,12 +109,18 @@ def score_transcription(id):
         )
 
         gpt_score = response.choices[0].message.content
+        gpt_score_raw = json.loads(gpt_score) 
+        overall_score = gpt_score_raw.get('overall_score', 0)
+        summary = gpt_score_raw.get('summary', '')
 
         result = UserTranscript(
             user_id=current_user.id,
             score=gpt_score,
             test_taken=id,
-            user_transcript=user_submitted_transcript
+            user_transcript=user_submitted_transcript,
+            testing_id=testingId,
+            overall_score=overall_score,
+            summary=summary
         )
         db.session.add(result)
         db.session.commit()
@@ -241,3 +255,19 @@ def get_tests():
         'status': 'success',
         'tests': [test.serialize() for test in tests]
     })
+
+
+def take_tests():
+    testing_id = datetime.now().strftime("%Y%m%d%H%M%S")
+    tests = TranscriptTest.query.all()
+    tests_data = []
+    for test in tests:
+        tests_data.append({
+            'id': test.id,
+            'name_of_test': test.name_of_test,
+            'good_transcript': test.good_transcript,
+            'bad_transcript': test.bad_transcript,
+            'audio_file_path': test.audio_file_path,
+            'srt_file_path': test.srt_file_path
+        })
+    return render_template('take_test.html', tests=tests_data, testing_id=testing_id)
