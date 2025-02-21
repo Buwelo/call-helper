@@ -10,6 +10,7 @@ window.addEventListener('load', function () {
     srtToStream: document.getElementById('srt-to-stream'),
     testId: document.getElementById('test-id'),
     testStatus: document.getElementById('test-status'),
+    testingId: document.getElementById('testing-id'),
   };
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
@@ -164,6 +165,7 @@ window.addEventListener('load', function () {
     }
 
     let userTranscriptItem = {
+      testingId: elements.testingId.value,
       testId: initialTestId,
       transcript: transcriptValue,
     };

@@ -30,8 +30,7 @@
     {% endif %}
     <header class="flex justify-between items-center py-4 px-4 bg-gray-200 shadow-md">
       <h1 class="text-2xl font-bold">CaptionCall Assessment</h1>
-      <!-- <a href="/transcription/create_test">Create new test</a> -->
-
+      <input id="testing-id" value="{{testing_id}}" class="" />
       <div class="relative">
         <button
           class="flex items-center space-x-2 focus:outline-none"
@@ -90,7 +89,7 @@
                 class="mx-auto block focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
                 id="start-test"
               >
-                Start Test
+                Play
               </button>
               <label for="editable-transcript" class="block mb-2 text-sm font-medium text-gray-900"> </label>
 
@@ -207,7 +206,14 @@
             currentTestIndex++;
             if (currentTestIndex < tests.length) {
               loadTest(currentTestIndex);
+
+              if (currentTestIndex === tests.length - 1) {
+                nextButton.innerText = 'Submit';
+              }
             } else {
+              if (currentTestIndex === tests.length - 1) {
+                nextButton.innerText = 'Submit Test';
+              }
               console.log('All tests completed');
 
               const testStatus = document.getElementById('test-status');
@@ -216,7 +222,7 @@
             }
           });
         }
-        
+
         function loadTest(index) {
           if (index < tests.length) {
             audioPlayer.pause();

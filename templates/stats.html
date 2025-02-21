@@ -1,109 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-	<p>tests_per_month</p>
-	{{tests_per_month}}
+  </head>
+  <body class="bg-gray-100">
+    <p>tests_per_month</p>
+    {{tests_per_month}}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Analytics Dashboard</h1>
+      <h1 class="text-3xl font-bold text-center mb-8">Stats</h1>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-white rounded-lg shadow-md p-6 h-96 overflow-auto">
-                <h2 class="text-xl font-semibold mb-4">Leaderboard</h2>
-                <table id="leaderboardTable" class="w-full">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="py-2 px-4 text-left">Rank</th>
-                            <th class="py-2 px-4 text-left">Name</th>
-                            <th class="py-2 px-4 text-left">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Leaderboard data will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 h-96">
-                <h2 class="text-xl font-semibold mb-4">Tests Taken Over Time</h2>
-                <div class="h-80">
-                    <canvas id="testsChart"></canvas>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 md:col-span-2 h-96">
-                <h2 class="text-xl font-semibold mb-4">Highest Scores Over Time</h2>
-                <div class="h-80">
-                    <canvas id="scoresChart"></canvas>
-                </div>
-            </div>
+      <div class="grid  gap-8">
+        <div class="bg-white rounded-lg shadow-md p-6 h-96 overflow-auto">
+          <h2 class="text-xl font-semibold mb-4">Leaderboard</h2>
+          <table id="leaderboardTable" class="w-full">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="py-2 px-4 text-left">Rank</th>
+                <th class="py-2 px-4 text-left">Name</th>
+                <th class="py-2 px-4 text-left">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Leaderboard data will be inserted here -->
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
 
-    <script>
-        // Sample data for charts
-        const testsData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Number of Tests',
-                data: [12, 19, 3, 5, 2, 3],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        };
-
-        const scoresData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Highest Score',
-                data: [65, 59, 80, 81, 56, 55],
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1
-            }]
-        };
-
-        // Create charts
-        new Chart(document.getElementById('testsChart'), {
-            type: 'line',
-            data: testsData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        new Chart(document.getElementById('scoresChart'), {
-            type: 'line',
-            data: scoresData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Sample leaderboard data
-        const leaderboardData = [
-            { rank: 1, name: 'John Doe', score: 95 },
-            { rank: 2, name: 'Jane Smith', score: 92 },
-            { rank: 3, name: 'Bob Johnson', score: 88 },
-        ];
-
-        // Populate leaderboard
-        const leaderboardBody = document.querySelector('#leaderboardTable tbody');
-        leaderboardData.forEach(entry => {
-            const row = leaderboardBody.insertRow();
-            row.insertCell(0).textContent = entry.rank;
-            row.insertCell(1).textContent = entry.name;
-            row.insertCell(2).textContent = entry.score;
-            row.classList.add('border-b', 'border-gray-200');
-            row.querySelectorAll('td').forEach(cell => cell.classList.add('py-2', 'px-4'));
-        });
-    </script>
-</body>
+    <script></script>
+  </body>
 </html>

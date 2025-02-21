@@ -12,7 +12,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from pydantic import BaseModel
 from flask import render_template
-
+import json
 
 # TODO tune prompt to perfection so scoring is more accurate
 
@@ -51,6 +51,9 @@ def score_transcription(id):
     # Get the user submitted transcript from the request
     user_submitted_transcript = request.json.get('transcript')
 
+    testingId = request.json.get('testing_id') # this identifies all the transcriptions sent together as one test.
+    logger.info(f"request : {request}")
+    logger.info(f"Testing ID: {testingId}")
     # Fetch the test data using the id
     test_data = TranscriptTest.query.get(id)
 
@@ -88,7 +91,7 @@ def score_transcription(id):
         Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
         Provide an overall percentage score for the entire test, calculated as: (audio cues score + contextual corrections score + punctuation score) / 300 * 100 = Overall Percentage Score.
         """
-
+# GPT-4 score: {"score_items":[{"category":"Audio cues","assigned_score":100,"comment":"No audio cues were needed or present in either transcript."},{"category":"Contextual word corrections","assigned_score":0,"comment":"The user's transcript is incomplete and misses entire sentences that were present in the correct transcript. No corrections were attempted."},{"category":"Punctuation","assigned_score":0,"comment":"The user's transcript does not account for punctuation that might affect sentence meaning, due to missing large parts of the text."}],"overall_score":33,"summary":"The user's transcription is incomplete compared to the correct transcript. No audio cues were needed or present, so a score of 100 was assigned for Audio Cues. However, the user's transcript missed several sentences entirely and included no contextual corrections or punctuation adjustments, resulting in a score of 0 for both Contextual Word Corrections and Punctuation."}
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",
@@ -102,12 +105,18 @@ def score_transcription(id):
         )
 
         gpt_score = response.choices[0].message.content
+        gpt_score_raw = json.loads(gpt_score) 
+        overall_score = gpt_score_raw.get('overall_score', 0)
+        summary = gpt_score_raw.get('summary', '')
 
         result = UserTranscript(
             user_id=current_user.id,
             score=gpt_score,
             test_taken=id,
-            user_transcript=user_submitted_transcript
+            user_transcript=user_submitted_transcript,
+            testing_id=testingId,
+            overall_score=overall_score,
+            summary=summary
         )
         db.session.add(result)
         db.session.commit()
@@ -245,6 +254,7 @@ def get_tests():
 
 
 def take_tests():
+    testing_id = datetime.now().strftime("%Y%m%d%H%M%S")
     tests = TranscriptTest.query.all()
     tests_data = []
     for test in tests:
@@ -256,4 +266,4 @@ def take_tests():
             'audio_file_path': test.audio_file_path,
             'srt_file_path': test.srt_file_path
         })
-    return render_template('take_test.html', tests=tests_data)
+    return render_template('take_test.html', tests=tests_data, testing_id=testing_id)
