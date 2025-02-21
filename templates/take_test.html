@@ -66,16 +66,7 @@
       <input id="test-status" class="" value="" />
 
       <div class="m-4">
-        <div
-          id="welcome-banner"
-          class="bg-blue-800 text-white text-center p-4 shadow-lg m-4 border border-blue-900 rounded-lg"
-        >
-          <p class="text-lg font-semibold">🚀 Welcome {{current_user.first_name }} {{ current_user.last_name }}.</p>
-          <p class="text-md font-semibold">
-            Please Instructions: Modify the text of the conversation as your hear it, correcting inaccuracies and adding
-            audio cues like [YAWN] as necessary. Please use only directional keys and mouse to navigate ⬆️⬇️⬅️➡️
-          </p>
-        </div>
+        {% include 'components/welcome_banner.html' %}
         <h2 id="current-test" class="text-xl font-bold">
           Current Test: <span id="current-test-name">{{current_test.name_of_test}}</span>
         </h2>
