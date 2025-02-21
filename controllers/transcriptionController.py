@@ -50,10 +50,15 @@ def score_transcription(id):
 
     # Get the user submitted transcript from the request
     user_submitted_transcript = request.json.get('transcript')
+    data = request.get_json()
 
-    testingId = request.json.get('testing_id') # this identifies all the transcriptions sent together as one test.
+    testingId = data.get('testingId')
+
     logger.info(f"request : {request}")
     logger.info(f"Testing ID: {testingId}")
+
+
+    logger.info(f"Data: {data}")
     # Fetch the test data using the id
     test_data = TranscriptTest.query.get(id)
 
@@ -91,7 +96,6 @@ def score_transcription(id):
         Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
         Provide an overall percentage score for the entire test, calculated as: (audio cues score + contextual corrections score + punctuation score) / 300 * 100 = Overall Percentage Score.
         """
-# GPT-4 score: {"score_items":[{"category":"Audio cues","assigned_score":100,"comment":"No audio cues were needed or present in either transcript."},{"category":"Contextual word corrections","assigned_score":0,"comment":"The user's transcript is incomplete and misses entire sentences that were present in the correct transcript. No corrections were attempted."},{"category":"Punctuation","assigned_score":0,"comment":"The user's transcript does not account for punctuation that might affect sentence meaning, due to missing large parts of the text."}],"overall_score":33,"summary":"The user's transcription is incomplete compared to the correct transcript. No audio cues were needed or present, so a score of 100 was assigned for Audio Cues. However, the user's transcript missed several sentences entirely and included no contextual corrections or punctuation adjustments, resulting in a score of 0 for both Contextual Word Corrections and Punctuation."}
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",
