@@ -60,8 +60,11 @@
       // console.log('test srt', "{{srt_file}}");
     </script>
     <div class="container">
+      <div id="transcriptions-display"></div>
+
       <input id="srt-to-stream" class="hidden" value="{{current_test.srt_file_path}}" />
       <input id="test-id" class="hidden" value="{{current_test.id}}" />
+      <input id="test-status" class="" value="" />
 
       <div class="m-4">
         <div
@@ -184,8 +187,6 @@
         const currentTestNameElement = document.getElementById('current-test-name');
 
         let tests = [];
-
-        const state = [];
         if (!totalTestsInput || !testsDataScript || !nextButton) {
           console.error('Required elements not found');
         } else {
@@ -208,12 +209,14 @@
               loadTest(currentTestIndex);
             } else {
               console.log('All tests completed');
-              alert('All tests completed');
-              // You can add code here to handle the completion of all tests
+
+              const testStatus = document.getElementById('test-status');
+              testStatus.value = 'completed';
+              console.log('testStatus', testStatus);
             }
           });
         }
-
+        
         function loadTest(index) {
           if (index < tests.length) {
             audioPlayer.pause();

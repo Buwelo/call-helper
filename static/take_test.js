@@ -9,6 +9,7 @@ window.addEventListener('load', function () {
     startTestButton: document.getElementById('start-test'),
     srtToStream: document.getElementById('srt-to-stream'),
     testId: document.getElementById('test-id'),
+    testStatus: document.getElementById('test-status'),
   };
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
@@ -166,77 +167,17 @@ window.addEventListener('load', function () {
       testId: initialTestId,
       transcript: transcriptValue,
     };
+    // TODO add control to prevent re-submitting the same transcript
 
     state.transcriptions.push(userTranscriptItem);
+
+    if (elements.testStatus.value === 'completed') {
+      console.log('submitting test');
+    }
 
     console.log('Test ID for this transcript:', initialTestId);
     console.log(state.transcriptions);
 
-	  initialTestId = elements.testId.value;
-	  
-	  //   TODO implement promise.all to send all transcriptions at once
-	  
-    // const testId = elements.testId.value;
-    // fetch(`/transcription/score-transcription/${testId}`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(data),
-    // })
-    //   .then(response => {
-    //     console.log(response);
-
-    //     if (!response.ok) {
-    //       throw new Error('Network response was not ok');
-    //     }
-    //     return response.json();
-    //   })
-    //   .then(data => {
-    //     console.log(data);
-
-    //     let scoreData;
-    //     try {
-    //       scoreData = JSON.parse(data.gpt_score);
-    //     } catch (e) {
-    //       console.error('Error parsing gpt_score:', e);
-    //       scoreData = null;
-    //     }
-    //     let scoreHTML = '';
-
-    //     if (scoreData && typeof scoreData === 'object') {
-    //       // Display individual score items
-    //       if (Array.isArray(scoreData.score_items)) {
-    //         scoreData.score_items.forEach(item => {
-    //           scoreHTML += `
-    // 				<div class="mb-4">
-    // 				  <h3 class="text-lg font-semibold">${item.category}</h3>
-    // 				  <p>Score: ${item.assigned_score}</p>
-    // 				  <p>${item.comment}</p>
-    // 				</div>
-    // 			  `;
-    //         });
-    //       } else {
-    //         scoreHTML += '<p>No detailed score items available.</p>';
-    //       }
-
-    //       // Display overall score and summary
-    //       scoreHTML += `
-    // 			<div class="mt-6">
-    // 			  <h3 class="text-lg font-semibold">Overall Score: ${scoreData.overall_score || 'N/A'}</h3>
-    // 			  <p class="mt-2"><strong>Summary:</strong> ${scoreData.summary || 'No summary available.'}</p>
-    // 			</div>
-    // 		  `;
-    //     } else {
-    //       scoreHTML += '<p>Unable to parse score data. Please try again.</p>';
-    //     }
-
-    //     modal.show();
-    //     elements.scoreModalBody.innerHTML = scoreHTML;
-    //   })
-    //   .catch(error => {
-    //     console.error('Error:', error);
-    //     alert('Error scoring the transcript. Please try again.');
-    //   });
+    initialTestId = elements.testId.value;
   });
 });
