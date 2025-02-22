@@ -73,29 +73,15 @@ def score_transcription(id):
     content = """
         You are an AI assistant knowledgeable in how transcriptions for accessibility needs, especially for the deaf, are scored.
         The transcriptions in this case are a result of a user potentially correcting AI transcriptions on the fly for CaptionCall. 
-        Ignore repeated lines in the script submitted.
         Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria, also show the changes the user made (if any) as compared with the correct transcript:
-
-        1. Audio cues:
-        - If audio cues like YAWN, LAUGHTER, and BABBLE are correctly included or maintained, assign a score of 100.
-        - If such cues are missing or incorrectly modified, assign a score of 0.
-        - If no audio cues are present in either transcript, assign "not applicable".
-
-        2. Contextual word corrections:
-        - For each correction made in terms of proper contextual word use (e.g., changing "rain" to "reign"), assign 10 points.
-        - If no corrections were needed and none were made, assign a score of 100.
-        - If corrections were needed but not made, assign a score of 0.
-        - Maximum score for this category is 100.
-
-        3. Punctuation:
-        - For each correct punctuation change that affects sentence meaning, assign 10 points.
-        - If no punctuation changes were needed and none were made, assign a score of 100.
-        - If punctuation changes were needed but not made, assign a score of 0.
-        - Maximum score for this category is 100.
+        You shall ignore repeated lines in the script submitted if any.
+You shall focus on differences between the user's transcript and the correct transcript and detail every correction or miss by the user in the score, main areas should be comparing the two texts and detailing the differences, misspelled words, missing words and punctuations.
+You shall detail the changes the user made in comparison with the correct transcript.
 
         Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
-        Provide an overall percentage score for the entire test, calculated as: (audio cues score + contextual corrections score + punctuation score) / 300 * 100 = Overall Percentage Score.
-        """
+Accumulate a score of 10 for each correction made by the user.
+
+The overall score should be the sum of the scores for each criterion in percentage"""
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",

@@ -171,6 +171,7 @@ window.addEventListener('load', function () {
     elements.audioPlayer.controls = true;
 
     const transcriptValue = elements.editableTranscript.value.trim();
+    elements.editableTranscript.value = '';
 
     if (transcriptValue.length <= 15) {
       alert('Transcript is too short. Please provide a more substantial submission.');
