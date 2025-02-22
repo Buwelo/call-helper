@@ -1,33 +1,71 @@
-# utils.py
-from datetime import datetime
-import time
-import logging
-import json
-from models.transcript import TranscriptTest
 import difflib
+import logging
+from datetime import datetime
+import re
 
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def parse_time(time_str):
+    """Convert SRT timestamp to seconds"""
+    time_obj = datetime.strptime(time_str.replace(',', '.'), '%H:%M:%S.%f')
+    return time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second + time_obj.microsecond / 1000000
+
+
+def extract_text_from_srt(srt_content):
+    """Extract only the text content from SRT format, ignoring timestamps and sequence numbers"""
+    lines = srt_content.split('\n')
+    text_lines = []
+    for line in lines:
+        if not re.match(r'^\d+$', line) and not re.match(r'^\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}$', line) and line.strip():
+            text_lines.append(line.strip())
+    return ' '.join(text_lines)
+
+
 def compare_transcript(good_transcript, bad_transcript):
-    good_lines = good_transcript.splitlines()
-    bad_lines = bad_transcript.splitlines()
+    good_text = extract_text_from_srt(good_transcript)
+    bad_text = extract_text_from_srt(bad_transcript)
 
-    if good_lines == bad_lines:
-        results = 'Transcripts are identical'
-        logger.info(f'Transcripts are identical')
-    else:
-        d = difflib.Differ()
-        diff = list(d.compare(good_lines, bad_lines))
-        results = '\n'.join(diff)
+    if good_text == bad_text:
+        return 'Transcripts are identical'
 
-    return results
+    d = difflib.Differ()
+    diff = list(d.compare(good_text.split(), bad_text.split()))
 
-example_results_from_difflib = """
-Comparison Results:
-  
-  CORRECT: 1 00:00:01,220 --> 00:00:03,420
+    # Group differences for better readability
+    grouped_diff = []
+    current_good_group = []
+    current_bad_group = []
+
+    for line in diff:
+        if line.startswith('  '):  # unchanged
+            if current_good_group or current_bad_group:
+                if current_good_group:
+                    grouped_diff.append(
+                        "CORRECT: " + ' '.join(current_good_group))
+                if current_bad_group:
+                    grouped_diff.append(
+                        "USER   : " + ' '.join(current_bad_group))
+                current_good_group = []
+                current_bad_group = []
+            grouped_diff.append(line[2:])
+        elif line.startswith('- '):  # in good_transcript
+            current_good_group.append(line[2:])
+        elif line.startswith('+ '):  # in bad_transcript
+            current_bad_group.append(line[2:])
+
+    # Add any remaining groups
+    if current_good_group:
+        grouped_diff.append("CORRECT: " + ' '.join(current_good_group))
+    if current_bad_group:
+        grouped_diff.append("USER   : " + ' '.join(current_bad_group))
+
+    return '\n'.join(grouped_diff)
+
+
+EXAMPLE_COMPARISON_RESULT = """CORRECT: 1 00:00:01,220 --> 00:00:03,420
 (Transcribed
 by
 TurboScribe.ai.
@@ -632,3 +670,4 @@ looking
 CORRECT: 83 00:03:08,200 --> 00:03:08,720
 all
 around."""
+

@@ -13,8 +13,8 @@ from werkzeug.utils import secure_filename
 from pydantic import BaseModel
 from flask import render_template
 import json
+from utility import transcript_compare
 
-# TODO tune prompt to perfection so scoring is more accurate
 
 class ScoreItem(BaseModel):
     category: str
@@ -32,8 +32,9 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 logger = logging.getLogger(__name__)
 client = OpenAI()
 
-
 # id will be used to get the correct transcript from the database to compare
+
+
 def score_transcription(id):
     """
     Scores a user-submitted transcript against a correct transcript from the database.
@@ -57,7 +58,6 @@ def score_transcription(id):
     logger.info(f"request : {request}")
     logger.info(f"Testing ID: {testingId}")
 
-
     logger.info(f"Data: {data}")
     # Fetch the test data using the id
     test_data = TranscriptTest.query.get(id)
@@ -70,17 +70,48 @@ def score_transcription(id):
 
     good_transcript = test_data.good_transcript
 
-    content = """
-        You are an AI assistant knowledgeable in how transcriptions for accessibility needs, especially for the deaf, are scored.
-        The transcriptions in this case are a result of a user potentially correcting AI transcriptions on the fly for CaptionCall. 
-        Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria, also show the changes the user made (if any) as compared with the correct transcript:
-        Don't deduct any points for any category, only add up to the score when the user makes corrections.
-        You shall ignore repeated lines in the script submitted if any.
-    You shall focus on differences between the user's transcript and the correct transcript and detail every correction or miss by the user in the score, main areas should be comparing the two texts and detailing the differences, misspelled words, missing words and punctuations only, no assumptions.
-    You shall detail the changes the user made in comparison with the correct transcript.
-    Accumulate a score of 10 for each correction made by the user.
+    compare_transcript_result = transcript_compare.compare_transcript(
+        good_transcript, user_submitted_transcript)
+    logger.info(f"Comparison result: {compare_transcript_result}")
 
-"""
+    content = f"""
+    You are an AI assistant tasked with scoring transcriptions for accessibility needs, particularly for the deaf. Follow these instructions:
+
+    1. Comparison:
+       - Compare the user's submitted transcript with the correct transcript.
+       - Use the provided transcript comparison result as a reference.
+       - Example comparison result: {transcript_compare.EXAMPLE_COMPARISON_RESULT}
+
+    2. Scoring Rules:
+       - Starting score: 200 points
+       - For each mismatch: Subtract 5 points
+       - Perfect match: Full score (200 points)
+       - Ignore any words or characters in the user's transcript not present in the correct transcript
+
+    3. Evaluation Criteria:
+       - Ignore all timestamps
+       - Disregard repeated lines in the user's submitted transcript
+       - Focus on:
+         a) Misspelled words
+         b) Missing words
+         c) Punctuation errors
+       - Do not make assumptions; evaluate based on observable differences only
+
+    4. Feedback Requirements:
+       - Provide an overall score based on the mismatches
+       - Detail what the user missed and explain why
+       - Give specific feedback on items missed or added
+       - Summarize mismatches (e.g., "Total Mismatches detected: 5, resulting in 25 points lost")
+       - Include relevant observations from the comparison result for context
+       - Avoid any hallucinations or made-up information
+
+    5. Output Format:
+       - Scores should be in points, not percentages
+       - Provide a detailed breakdown of differences between the transcripts
+       - List every correction or miss by the user
+
+    Remember: Your main focus is on accurately comparing the two texts and providing detailed, constructive feedback based on the observable differences.
+    """
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",
@@ -88,13 +119,13 @@ def score_transcription(id):
                 {'role': 'system', 'content': content},
                 {
                     'role': 'user',
-                    'content': f"User's transcript:\n{user_submitted_transcript}\n\nCorrect transcript:\n{good_transcript}"
+                    'content': f"User's transcript:\n{user_submitted_transcript}\n\nCorrect transcript:\n{good_transcript}\n\nTranscript comparison result:{compare_transcript_result}"
                 }
             ], response_format=Breakdown
         )
 
         gpt_score = response.choices[0].message.content
-        gpt_score_raw = json.loads(gpt_score) 
+        gpt_score_raw = json.loads(gpt_score)
         overall_score = gpt_score_raw.get('overall_score', 0)
         summary = gpt_score_raw.get('summary', '')
 
