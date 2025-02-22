@@ -74,14 +74,13 @@ def score_transcription(id):
         You are an AI assistant knowledgeable in how transcriptions for accessibility needs, especially for the deaf, are scored.
         The transcriptions in this case are a result of a user potentially correcting AI transcriptions on the fly for CaptionCall. 
         Given the user's transcript and the correct transcript, compare the two transcripts and provide a score on the following criteria, also show the changes the user made (if any) as compared with the correct transcript:
+        Don't deduct any points for any category, only add up to the score when the user makes corrections.
         You shall ignore repeated lines in the script submitted if any.
-You shall focus on differences between the user's transcript and the correct transcript and detail every correction or miss by the user in the score, main areas should be comparing the two texts and detailing the differences, misspelled words, missing words and punctuations.
-You shall detail the changes the user made in comparison with the correct transcript.
+    You shall focus on differences between the user's transcript and the correct transcript and detail every correction or miss by the user in the score, main areas should be comparing the two texts and detailing the differences, misspelled words, missing words and punctuations only, no assumptions.
+    You shall detail the changes the user made in comparison with the correct transcript.
+    Accumulate a score of 10 for each correction made by the user.
 
-        Provide a score out of 100 and a brief explanation for each criterion. The scoring format should be text-based and brief.
-Accumulate a score of 10 for each correction made by the user.
-
-The overall score should be the sum of the scores for each criterion in percentage"""
+"""
     try:
         response = client.beta.chat.completions.parse(
             model="gpt-4o",
