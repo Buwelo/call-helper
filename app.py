@@ -42,7 +42,7 @@ def home():
     if not tests:
         return render_template('error.html', message="No tests available")
     random_test = random.choice(tests)
-    logging.info(f'random test, {random_test}')
+    # logging.info(f'random test, {random_test}')
 
     audio_file = random_test.get('audio_file_path')
     srt_file = random_test.get('srt_file_path')
