@@ -16,6 +16,7 @@ window.addEventListener('load', function () {
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
     elements.editableTranscript.value = '';
+    elements.editableTranscript.disabled = false;
     elements.audioPlayer.play();
   });
 
@@ -65,6 +66,14 @@ window.addEventListener('load', function () {
       });
     }
   };
+  // Handle when audio ends
+
+  elements.audioPlayer.addEventListener('ended', () => {
+    console.log('audio has ended');
+    this.setTimeout(() => {
+      elements.editableTranscript.disabled = true;
+    }, 8000);
+  });
 
   // Initialize WebSocket connection
   const initializeWebSocket = () => {
