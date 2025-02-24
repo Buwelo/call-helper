@@ -16,6 +16,7 @@ window.addEventListener('load', function () {
   elements.startTestButton.addEventListener('click', e => {
     e.preventDefault();
     elements.editableTranscript.value = '';
+    elements.editableTranscript.disabled = false;
     elements.audioPlayer.play();
   });
 
@@ -65,6 +66,14 @@ window.addEventListener('load', function () {
       });
     }
   };
+  // Handle when audio ends
+
+  elements.audioPlayer.addEventListener('ended', () => {
+    console.log('audio has ended');
+    this.setTimeout(() => {
+      elements.editableTranscript.disabled = true;
+    }, 8000);
+  });
 
   // Initialize WebSocket connection
   const initializeWebSocket = () => {
@@ -228,7 +237,7 @@ window.addEventListener('load', function () {
                   item => `
                 <div class="score-item mb-4">
                   <h4 class="font-semibold mb-1">${item.category}</h4>
-                  <p class="mb-1">Score: ${item.assigned_score}/100</p>
+                  <p class="mb-1">Score: ${item.assigned_score}</p>
                   <p>${item.comment}</p>
                 </div>
               `
@@ -237,7 +246,7 @@ window.addEventListener('load', function () {
               return `
               <div class="test-result mb-5">
                 <div class="overall-score text-xl font-bold mb-3">
-                  <h4>Overall Score: ${gptScore.overall_score}%</h4>
+                  <h4>Overall Score: ${gptScore.overall_score}</h4>
                 </div>
                 <div class="score-items space-y-4">
                   ${scoreItemsHTML}
