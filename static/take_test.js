@@ -20,6 +20,32 @@ window.addEventListener('load', function () {
     elements.audioPlayer.play();
   });
 
+  elements.audioPlayer.addEventListener('ended', () => {
+    console.log('audio has ended');
+    disableTextareaAfterDelay();
+    alert('Textarea disabled after audio ends, proceed to next...');
+  });
+
+  elements.audioPlayer.addEventListener('play', () => {
+    console.log('Audio started playing');
+    elements.editableTranscript.disabled = false;
+  });
+
+  function disableTextareaAfterDelay() {
+    // Check if audio has actually ended
+    if (elements.audioPlayer.ended) {
+      console.log('Disabling textarea in 8 seconds');
+      setTimeout(() => {
+        if (elements.audioPlayer.ended) {
+          console.log('Textarea disabled');
+          elements.editableTranscript.disabled = true;
+        } else {
+          console.log('Audio is playing again, textarea not disabled');
+        }
+      }, 8000);
+    }
+  }
+
   // Hide spinner when page is loaded
   elements.spinner.style.display = 'none';
 
@@ -68,13 +94,7 @@ window.addEventListener('load', function () {
   };
   // Handle when audio ends
 
-  elements.audioPlayer.addEventListener('ended', () => {
-    console.log('audio has ended');
-    alert('Textarea disabled after audio ends, proceed to next...');
-    setTimeout(() => {
-      elements.editableTranscript.disabled = true;
-    }, 8000);
-  });
+
 
   // Initialize WebSocket connection
   const initializeWebSocket = () => {
