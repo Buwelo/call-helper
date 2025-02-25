@@ -70,7 +70,8 @@ window.addEventListener('load', function () {
 
   elements.audioPlayer.addEventListener('ended', () => {
     console.log('audio has ended');
-    this.setTimeout(() => {
+    alert('Textarea disabled after audio ends, proceed to next...');
+    setTimeout(() => {
       elements.editableTranscript.disabled = true;
     }, 8000);
   });
