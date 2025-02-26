@@ -4,10 +4,9 @@ from controllers.analyticsController import analyze
 
 analytics = Blueprint('analytics', __name__)
 
-@analytics.route('/stats',methods=['GET'])
+@analytics.route('/stats', methods=['GET'])
 @login_required
 def stats():
-    # TODO: Implement analytics stats
-    analyze()  # Call the analyze function to get the stats data
-    # Use the stats data to render the stats.html template with the necessary data for visualization and analysis.
-    return render_template('stats.html')
+    data = analyze()
+    print("Data being passed to template:", data)  # Debug print
+    return render_template('stats.html', **data)

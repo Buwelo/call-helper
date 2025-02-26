@@ -6,32 +6,74 @@
     <title>Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.1.8/css/fixedHeader.dataTables.min.css" />
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/fixedheader/3.1.8/js/dataTables.fixedHeader.min.js"></script>
   </head>
   <body class="bg-gray-100">
-    <p>tests_per_month</p>
-    {{tests_per_month}}
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold text-center mb-8">Stats</h1>
+<div class="mt-8">
+  <h2 class="text-xl font-semibold mb-4">Leaderboard</h2>
+  {% if top_scores is defined and top_scores %}
+    <table id="leaderboardTable" class="display w-full">
+      <thead>
+        <tr class="text-left">
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Score</th>
+          <th>Test Type</th>
+          <th>Date of Test</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for score in top_scores %}
+        <tr  class="cursor-pointer">
+          <td>{{ loop.index }}</td>
+          <td>{{ score.name }}</td>
+          <td>{{ score.score }}</td>
+          <td>{{ "Assessment" if score.testing_id else "Practice Test" }}</td>
+          <td>{{score.created_at}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No leaderboard data available.</p>
+  {% endif %}
+</div>
 
-      <div class="grid  gap-8">
-        <div class="bg-white rounded-lg shadow-md p-6 h-96 overflow-auto">
-          <h2 class="text-xl font-semibold mb-4">Leaderboard</h2>
-          <table id="leaderboardTable" class="w-full">
-            <thead>
-              <tr class="bg-gray-200">
-                <th class="py-2 px-4 text-left">Rank</th>
-                <th class="py-2 px-4 text-left">Name</th>
-                <th class="py-2 px-4 text-left">Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Leaderboard data will be inserted here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <script></script>
+    <script>
+      $(document).ready(function () {
+        $('#leaderboardTable').DataTable({
+          lengthMenu:[10, 25, 50],
+          pageLength: 10,
+          lengthChange: true,
+          searching: true,
+          ordering: true,
+          fixedHeader: true,
+          order: [[2, 'desc']], // Sort by Score column descending
+          columnDefs: [
+            { orderable: false, targets: 0 }, // Disable sorting on Rank column
+            {
+              targets:4,
+              render: function(data, type,row){
+                if (type === 'display' || type === 'filter'){
+                  var date = new Date(data)
+                  return date.toLocaleString('en-US', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })
+                }
+                return data;
+              }
+            }
+          ],
+        });
+      });
+    </script>
   </body>
 </html>
