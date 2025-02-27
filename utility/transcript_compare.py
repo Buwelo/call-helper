@@ -29,7 +29,7 @@ def compare_transcript(good_transcript, bad_transcript):
     bad_text = extract_text_from_srt(bad_transcript)
 
     if good_text == bad_text:
-        return 'Transcripts are identical'
+        return 'Transcripts are identical, test transcript and user transcript are identical.'
 
     d = difflib.Differ()
     diff = list(d.compare(good_text.split(), bad_text.split()))

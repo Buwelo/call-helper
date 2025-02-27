@@ -95,7 +95,7 @@ def score_transcription(id):
          a) Misspelled words
          b) Missing words
          c) Punctuation errors
-         d) Transcript character count should be within 10% of the correct transcript character count else user has failed and should lose 50 points.
+         d) User should have overall score 0 when they make zero changes in the transcript
        - Do not make assumptions; evaluate based on observable differences only
 
     4. Feedback Requirements:
