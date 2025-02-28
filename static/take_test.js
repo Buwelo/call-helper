@@ -261,6 +261,8 @@ window.addEventListener('load', function () {
                 <div class="comparison-details mt-4">
                   <h4 class="font-semibold mb-1">Comparison Details:</h4>
                   <p>${comparisonDetails.message}</p>
+                                    <h3 class="font-semibold mb-1">Breakdown:</h3>
+
                   <div class="readable-diff mt-3 p-3 bg-gray-700 rounded overflow-auto" style="max-height: 300px; white-space: pre-wrap;">
                     ${comparisonDetails.readable_diff}
                   </div>
