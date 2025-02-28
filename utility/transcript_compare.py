@@ -66,15 +66,21 @@ def compare_transcript(good_transcript, bad_transcript):
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == 'equal':
             readable_diff.append(f"MATCH: {' '.join(good_words[i1:i2])}")
+            readable_diff.append("")
         elif tag == 'replace':
             error_count += max(i2 - i1, j2 - j1)
             readable_diff.append(f"REPLACE: '{' '.join(good_words[i1:i2])}' -> '{' '.join(bad_words[j1:j2])}'")
+            readable_diff.append("")
+
         elif tag == 'delete':
             error_count += (i2 - i1)
             readable_diff.append(f"DELETE: '{' '.join(good_words[i1:i2])}'")
+            readable_diff.append("")
+
         elif tag == 'insert':
             error_count += (j2 - j1)
             readable_diff.append(f"INSERT: '{' '.join(bad_words[j1:j2])}'")
+            readable_diff.append("")
 
     readable_diff_str = "\n".join(readable_diff)
 
