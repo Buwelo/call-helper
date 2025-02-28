@@ -49,7 +49,8 @@ def compare_transcript(good_transcript, bad_transcript):
             'message': 'Transcripts are identical',
             'diff': '',
             'readable_diff': 'No differences found.',
-            'total_errors': 0
+            'total_errors': 0,
+            'similarity': 100
         }
 
     # Use difflib to compare the words

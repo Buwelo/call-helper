@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mb-4">
               <h3 class="text-lg font-semibold">Transcript Comparison</h3>
               <p>Status: ${
-                result.diff === 'identical'
+                result.diff === ''
                   ? '<span class="text-green-600">Identical</span>'
                   : '<span class="text-yellow-600">Different</span>'
               }</p>
