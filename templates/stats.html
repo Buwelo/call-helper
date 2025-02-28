@@ -25,14 +25,20 @@
           <th>Name</th>
           <th>Score</th>
           <th>Test Type</th>
-          <th>Date of Test</th>
+          <th>Date of Test</th>   
         </tr>
       </thead>
       <tbody>
         {% for score in top_scores %}
         <tr  class="cursor-pointer">
           <td>{{ loop.index }}</td>
-          <td>{{ score.name }}</td>
+          <td>
+            <a href="/analytics/stats/user/1">
+            
+            {{ score.name }}
+            
+          </a>  
+          </td>
           <td>{{ score.score }}</td>
           <td>{{ "Assessment" if score.testing_id else "Practice Test" }}</td>
           <td>{{score.created_at}}</td>

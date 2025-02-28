@@ -226,50 +226,46 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(data => {
         console.log(data);
+        hideSpinner();
 
-        let scoreData;
-        try {
-          scoreData = JSON.parse(data.gpt_score);
-        } catch (e) {
-          console.error('Error parsing gpt_score:', e);
-          scoreData = null;
-        }
         let scoreHTML = '';
 
-        if (scoreData && typeof scoreData === 'object') {
-          hideSpinner();
-          // Display individual score items
-          if (Array.isArray(scoreData.score_items)) {
-            scoreData.score_items.forEach(item => {
-              scoreHTML += `
-                <div class="mb-4">
-                  <h3 class="text-lg font-semibold">${item.category}</h3>
-                  <p>Score: ${item.assigned_score}</p>
-                  <p>${item.comment}</p>
-                </div>
-              `;
-            });
-          } else {
-            scoreHTML += '<p>No detailed score items available.</p>';
-          }
+        // Check if we have the new response structure
+        if (data.comparison_details) {
+          const result = data.comparison_details;
 
-          // Display overall score and summary
+          // Display status and similarity information
           scoreHTML += `
-            <div class="mt-6">
-              <h3 class="text-lg font-semibold">Overall Score: ${scoreData.overall_score || 'N/A'}</h3>
-              <p class="mt-2"><strong>Summary:</strong> ${scoreData.summary || 'No summary available.'}</p>
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold">Transcript Comparison</h3>
+              <p>Status: ${
+                result.diff === ''
+                  ? '<span class="text-green-600">Identical</span>'
+                  : '<span class="text-yellow-600">Different</span>'
+              }</p>
+              ${result.message ? `<p>Score: <strong>${result.similarity.toFixed(2)}%</strong></p>` : ''}
             </div>
           `;
-        } else {
-          hideSpinner();
 
-          scoreHTML += '<p>Unable to parse score data. Please try again.</p>';
+          // Display errors if any
+          if (result.total_errors > 0) {
+            scoreHTML += `
+              <div class="mb-4">
+                <h3 class="text-lg font-semibold">Breakdown:
+                </h3>
+                <div class="mt-2 p-3 bg-gray-700 rounded overflow-auto max-h-60">
+                  <pre class="text-wrap bg-dark-700">${result.readable_diff}</pre>
+                </div>
+              </div>
+            `;
+          }
         }
 
         modal.show();
         elements.scoreModalBody.innerHTML = scoreHTML;
       })
       .catch(error => {
+        hideSpinner();
         console.error('Error:', error);
         alert('Error scoring the transcript. Please try again.');
       });

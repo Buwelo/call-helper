@@ -149,7 +149,7 @@
                 </button>
               </div>
               <!-- Modal body -->
-              <div class="p-4 md:p-5 space-y-4 text-white" id="score-modal-body">
+              <div class="p-4 md:p-5 space-y-4 text-white overflow-y-auto max-h-[60vh]" id="score-modal-body">
                 <p class="text-white">Loading score...</p>
               </div>
 
@@ -215,8 +215,6 @@
             }
           });
         }
-
-     
 
         function loadTest(index) {
           if (index < tests.length) {

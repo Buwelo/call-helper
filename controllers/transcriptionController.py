@@ -16,17 +16,6 @@ import json
 from utility import transcript_compare
 
 
-class ScoreItem(BaseModel):
-    category: str
-    assigned_score: float
-    comment: str
-
-
-class Breakdown(BaseModel):
-    score_items: List[ScoreItem]
-    overall_score: float
-    summary: str
-
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 logger = logging.getLogger(__name__)
@@ -47,7 +36,7 @@ def score_transcription(id):
                   On success, returns a status of 'success', the test ID, and the GPT-4 score.
                   On failure, returns a status of 'error' and an error message.
     """
-    logger.info(f"Scoring transcription for id: {id}")
+    # logger.info(f"Scoring transcription for id: {id}")
 
     # Get the user submitted transcript from the request
     user_submitted_transcript = request.json.get('transcript')
@@ -55,10 +44,6 @@ def score_transcription(id):
 
     testingId = data.get('testingId')
 
-    logger.info(f"request : {request}")
-    logger.info(f"Testing ID: {testingId}")
-
-    logger.info(f"Data: {data}")
     # Fetch the test data using the id
     test_data = TranscriptTest.query.get(id)
 
@@ -74,88 +59,38 @@ def score_transcription(id):
         good_transcript, user_submitted_transcript)
     logger.info(f"Comparison result: {compare_transcript_result}")
 
-    content = f"""
-    You are an AI assistant tasked with scoring transcriptions for accessibility needs, particularly for the deaf. Follow these instructions:
+    # Extract error count from comparison result
+    error_count = compare_transcript_result.get('total_errors', 0)
 
-    1. Comparison:
-       - Compare the user's submitted transcript with the correct transcript.
-       - Use the provided transcript comparison result as a reference.
-       - Example comparison result: {transcript_compare.EXAMPLE_COMPARISON_RESULT}
+    # Save the user's transcript and score to the database if testingId is provided
+    if testingId:
+        try:
+            user_transcript = UserTranscript(
+                user_id=current_user.id if current_user.is_authenticated else None,
+                test_id=id,
+                transcript=user_submitted_transcript,
+                score=error_count,
+                testing_id=testingId,
+                created_at=datetime.now()
+            )
+            db.session.add(user_transcript)
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error saving user transcript: {str(e)}")
+            db.session.rollback()
 
-    2. Scoring Rules:
-       - Starting score: 200 points
-       - For each mismatch: Subtract 5 points
-       - Perfect match: Full score (200 points)
-       - Ignore any words or characters in the user's transcript not present in the correct transcript
+    # Return the scoring results
+    return jsonify({
+        'status': 'success',
+        'test_id': id,
+        'error_count': error_count,
+        'comparison_details': compare_transcript_result,
+        'testing_id': testingId
+    })
+    # logger.info(f"User submitted transcript: {user_submitted_transcript}")
 
-    3. Evaluation Criteria:
-       - Ignore all timestamps
-       - Disregard repeated lines in the user's submitted transcript
-       - Focus on:
-         a) Misspelled words
-         b) Missing words
-         c) Punctuation errors
-         d) User should have overall score 0 when they make zero changes in the transcript
-       - Do not make assumptions; evaluate based on observable differences only
-
-    4. Feedback Requirements:
-       - Provide an overall score based on the mismatches
-       - Detail what the user missed and explain why
-       - Give specific feedback on items missed or added
-       - Summarize mismatches (e.g., "Total Mismatches detected: 5, resulting in 25 points lost")
-       - Include relevant observations from the comparison result for context
-       - Avoid any hallucinations or made-up information
-
-    5. Output Format:
-       - Scores should be in points, not percentages
-       - Provide a detailed breakdown of differences between the transcripts
-       - List every correction or miss by the user
-
-    Remember: Your main focus is on accurately comparing the two texts and providing detailed, constructive feedback based on the observable differences.
-    """
-    try:
-        response = client.beta.chat.completions.parse(
-            model="gpt-4o",
-            messages=[
-                {'role': 'system', 'content': content},
-                {
-                    'role': 'user',
-                    'content': f"User's transcript:\n{user_submitted_transcript}\n\nCorrect transcript:\n{good_transcript}\n\nTranscript comparison result:{compare_transcript_result}"
-                }
-            ], response_format=Breakdown
-        )
-
-        gpt_score = response.choices[0].message.content
-        gpt_score_raw = json.loads(gpt_score)
-        overall_score = gpt_score_raw.get('overall_score', 0)
-        summary = gpt_score_raw.get('summary', '')
-
-        result = UserTranscript(
-            user_id=current_user.id,
-            score=gpt_score,
-            test_taken=id,
-            user_transcript=user_submitted_transcript,
-            testing_id=testingId,
-            overall_score=overall_score,
-            summary=summary
-        )
-        db.session.add(result)
-        db.session.commit()
-
-        print(f"User's transcript  saved: {result}")
-        return jsonify({
-            'test_id': id,
-            'status': 'success',
-            'message': 'Transcript scored successfully',
-            'gpt_score': gpt_score
-        })
-
-    except Exception as e:
-        logger.error(f"Error in scoring transcription: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': 'An error occurred while scoring the transcript'
-        }), 500
+  
+    
 
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path

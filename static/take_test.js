@@ -94,8 +94,6 @@ window.addEventListener('load', function () {
   };
   // Handle when audio ends
 
-
-
   // Initialize WebSocket connection
   const initializeWebSocket = () => {
     state.socket = io();
@@ -225,7 +223,7 @@ window.addEventListener('load', function () {
       console.log('submitting test');
       console.log(state.transcriptions);
 
-      elements.nextButton.disabled = true;
+      // elements.nextButton.disabled = false;
       showSpinner();
       const submissionPromises = state.transcriptions.map(async item => {
         return fetch('/transcription/score-transcription/' + item.testId, {
@@ -246,35 +244,31 @@ window.addEventListener('load', function () {
         .then(results => {
           console.log('All transcriptions submitted successfully.', results);
           alert('Your test results have been submitted. Thank you!');
-          // TODO redirect user to the results page or show modal with scores
 
           modal.show();
           const scoreHTML = results
             .map(result => {
-              const gptScore = JSON.parse(result.gpt_score);
               hideSpinner();
-              let scoreItemsHTML = gptScore.score_items
-                .map(
-                  item => `
-                <div class="score-item mb-4">
-                  <h4 class="font-semibold mb-1">${item.category}</h4>
-                  <p class="mb-1">Score: ${item.assigned_score} points</p>
-                  <p>${item.comment}</p>
-                </div>
-              `
-                )
-                .join('');
+
+              // Extract comparison details
+              const comparisonDetails = result.comparison_details;
               return `
               <div class="test-result mb-5">
                 <div class="overall-score text-xl font-bold mb-3">
-                  <h4>Overall Score: ${gptScore.overall_score} points</h4>
+                  <h4>Similarity Score: ${comparisonDetails.similarity.toFixed(2)}%</h4>
+                  <p>Total Errors: ${comparisonDetails.total_errors}</p>
                 </div>
-                <div class="score-items space-y-4">
-                  ${scoreItemsHTML}
+                <div class="comparison-details mt-4">
+                  <h4 class="font-semibold mb-1">Comparison Details:</h4>
+                  <p>${comparisonDetails.message}</p>
+                                    <h3 class="font-semibold mb-1">Breakdown:</h3>
+
+                  <div class="readable-diff mt-3 p-3 bg-gray-700 rounded overflow-auto" style="max-height: 300px; white-space: pre-wrap;">
+                    ${comparisonDetails.readable_diff}
+                  </div>
                 </div>
-                <div class="summary mt-4 italic">
-                  <h4 class="font-semibold mb-1">Summary:</h4>
-                  <p>${gptScore.summary}</p>
+                <div class="status mt-4">
+                  <p><strong>Status:</strong> ${comparisonDetails.status}</p>
                 </div>
               </div>
             `;
@@ -282,9 +276,11 @@ window.addEventListener('load', function () {
             .join('<hr>');
           elements.scoreModalBody.innerHTML = scoreHTML;
         })
+
         .catch(error => {
           console.error('Error submitting transcriptions:', error);
           alert('Error submitting test results. Please try again.');
+          hideSpinner();
           elements.nextButton.disabled = false;
         })
         .finally(() => {
