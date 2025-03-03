@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h1 class="text-2xl font-bold mb-6">Edit test</h1>
+      <form id="test-form">
+        <div class="mb-4">
+          <label for="score-transcript" class="block text-sm font-medium text-gray-700 mb-2"
+            >Paste the correct transcription here (that's the transcription that should be used as a benchmark)</label
+          >
+          <textarea
+            id="score-transcript"
+            name="score-transcript"
+            rows="4"
+            class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
+            placeholder="Enter your text here"
+          >
+          {{test.good_transcript}}
+          </textarea>
+          <span class="error-message text-red-300 text-sm"></span>
+        </div>
+        <div class="mb-4">
+          <label for="test-transcript" class="block text-sm font-medium text-gray-700 mb-2"
+            >Paste the wrong transcription here (this is the test)</label
+          >
+          <textarea
+            id="test-transcript"
+            name="test-transcript"
+            rows="4"
+            class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
+            placeholder="Enter your text here"
+          >
+        {{test.bad_transcript}}</textarea
+          >
+          <span class="error-message text-red-300 text-sm"></span>
+        </div>
+        <div class="mb-4">
+          <label for="name-of-test" class="block text-sm font-medium text-gray-700 mb-2"
+            >What would you like to call this test?</label
+          >
+          <input
+            type="text"
+            id="name-of-test"
+            name="name-of-test"
+            class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
+            placeholder="Enter text"
+            value="{{test.name_of_test}}"
+          />
+          <span class="error-message text-red-300"></span>
+        </div>
+        <div class="mb-4">
+          <label for="benchmark-score" class="block text-sm font-medium text-gray-700 mb-2"
+            >Provide benchmark score (score the test without any changes to get this score)</label
+          >
+          <input
+            type="number"
+            id="benchmark-score"
+            name="benchmark-score"
+            class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"
+            placeholder="Enter score"
+            value="{{test.benchmark_score}}"
+          />
+          <span class="error-message text-red-300"></span>
+        </div>
+        <!-- <div class="mb-6">
+          <label for="fileupload" class="block text-sm font-medium text-gray-700 mb-2"
+            >Please upload the .srt file here after modifying it to match the wrong transcription. To create an srt
+            file, go to a transcription website, I recommend
+            <a class="font-bold" href="https://turboscribe.ai">turboscribe.ai</a></label
+          >
+          <input
+            type="file"
+            id="file-upload"
+            name="fileupload"
+            class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <span class="error-message text-red-300 text-sm"></span>
+        </div>
+        <div class="mb-6">
+          <label for="audiofileupload" class="block text-sm font-medium text-gray-700 mb-2"
+            >Please upload the audio file here, this is the audio the test taker will hear, preferred format = .m4a
+          </label>
+          <input
+            type="file"
+            id="audio-file-upload"
+            name="audiofileupload"
+            class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <span class="error-message text-red-300 text-sm"></span>
+        </div> -->
+        <button
+          id="submit"
+          type="submit"
+          class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
+          Submit
+        </button>
+      </form>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('test-form');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const scoreTranscript = document.getElementById('score-transcript').value.trim();
+        const testTranscript = document.getElementById('test-transcript').value.trim();
+        const nameOfTest = document.getElementById('name-of-test').value.trim();
+        const benchmarkScore = document.getElementById('benchmark-score').value.trim();
+
+        // Validate inputs
+        let isValid = true;
+
+        if (!scoreTranscript) {
+          document.querySelector('#score-transcript + .error-message').textContent = 'Please enter the correct transcription';
+          isValid = false;
+        } else {
+          document.querySelector('#score-transcript + .error-message').textContent = '';
+        }
+
+        if (!testTranscript) {
+          document.querySelector('#test-transcript + .error-message').textContent = 'Please enter the test transcription';
+          isValid = false;
+        } else {
+          document.querySelector('#test-transcript + .error-message').textContent = '';
+        }
+
+        if (!nameOfTest) {
+          document.querySelector('#name-of-test + .error-message').textContent = 'Please enter a name for the test';
+          isValid = false;
+        } else {
+          document.querySelector('#name-of-test + .error-message').textContent = '';
+        }
+
+        if (!benchmarkScore) {
+          document.querySelector('#benchmark-score + .error-message').textContent = 'Please enter a benchmark score';
+          isValid = false;
+        } else {
+          document.querySelector('#benchmark-score + .error-message').textContent = '';
+        }
+
+        if (isValid) {
+          // Get test ID from URL
+          const urlParts = window.location.pathname.split('/');
+          const testId = urlParts[urlParts.length - 1];
+
+          // Create JSON data instead of FormData
+          const data = {
+            score_transcript: scoreTranscript,
+            test_transcript: testTranscript,
+            name_of_test: nameOfTest,
+            benchmark_score: benchmarkScore
+          };
+          fetch(`/transcription/edit_test/${testId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              return response.json().then(data => {
+                throw new Error(data.message || 'Something went wrong');
+              });
+            }
+          })
+          .then(data => {
+            alert('Test updated successfully!');
+            window.location.href = '/';
+          })
+          .catch(error => {
+            alert('Error: ' + error.message);
+            console.error(error);
+          });
+        }
+      });
+    });
+    </script>
+  </body>
+</html>
