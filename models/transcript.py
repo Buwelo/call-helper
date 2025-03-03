@@ -29,6 +29,7 @@ class UserTranscript(db.Model):
     test_taken = db.Column(db.Integer, db.ForeignKey('transcript_test.id'), nullable=False)
     user_transcript = db.Column(db.String(15000), nullable=False)  # User's submitted transcript
     testing_id = db.Column(db.String(25), nullable=True)
+    benchmark_score= db.Column(db.Float, nullable=True)  # score before any changes made to the transcript
     overall_score = db.Column(db.Float, nullable=True)  # Overall score of the transcript
     summary = db.Column(db.String(15000), nullable=True)  # Summary of the transcript
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  # Auto-set on creation
