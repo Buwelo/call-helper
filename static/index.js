@@ -308,16 +308,16 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
 
           // Add highlighted transcript if available
-          if (data.highlighted_transcript) {
-            scoreHTML += `
-              <div class="mt-6">
-                <h3 class="text-lg font-semibold mb-2">Highlighted Transcript</h3>
-                <div class="p-4 bg-dark border border-gray-200 rounded-lg overflow-auto max-h-96">
-                  ${data.highlighted_transcript}
-                </div>
-              </div>
-            `;
-          }
+          // if (data.highlighted_transcript) {
+          //   scoreHTML += `
+          //     <div class="mt-6">
+          //       <h3 class="text-lg font-semibold mb-2">Highlighted Transcript</h3>
+          //       <div class="p-4 bg-dark border border-gray-200 rounded-lg overflow-auto max-h-96">
+          //         ${data.highlighted_transcript}
+          //       </div>
+          //     </div>
+          //   `;
+          // }
         }
 
         modal.show();
