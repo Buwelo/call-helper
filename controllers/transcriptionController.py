@@ -53,40 +53,13 @@ def score_transcription(id):
         }), 404
 
     good_transcript = test_data.good_transcript
+    bad_transcript = test_data.bad_transcript
 
-    compare_transcript_result = transcript_compare.compare_transcript(
-        good_transcript, user_submitted_transcript)
-    logger.info(f"Comparison result: {compare_transcript_result}")
+    compare_transcript_result = transcript_compare.compare_transcript_with_errors(
+        good_transcript, bad_transcript, user_submitted_transcript)
 
-    # Extract error count from comparison result
-    error_count = compare_transcript_result.get('total_errors', 0)
-
-    # Save the user's transcript and score to the database if testingId is provided
-    if testingId:
-        try:
-            user_transcript = UserTranscript(
-                user_id=current_user.id if current_user.is_authenticated else None,
-                test_id=id,
-                transcript=user_submitted_transcript,
-                score=error_count,
-                testing_id=testingId,
-                created_at=datetime.now()
-            )
-            db.session.add(user_transcript)
-            db.session.commit()
-        except Exception as e:
-            logger.error(f"Error saving user transcript: {str(e)}")
-            db.session.rollback()
-
-    # Return the scoring results
-    return jsonify({
-        'status': 'success',
-        'test_id': id,
-        'error_count': error_count,
-        'comparison_details': compare_transcript_result,
-        'testing_id': testingId
-    })
-    # logger.info(f"User submitted transcript: {user_submitted_transcript}")
+    logger.info(f"Compare transcript result: {compare_transcript_result}")
+    return compare_transcript_result
 
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
@@ -205,9 +178,11 @@ def edit_test(id):
     if request.method == 'PATCH':
         data = request.json
         test.name_of_test = data.get('name_of_test', test.name_of_test)
-        test.good_transcript = data.get('score_transcript', test.good_transcript)
+        test.good_transcript = data.get(
+            'score_transcript', test.good_transcript)
         test.bad_transcript = data.get('test_transcript', test.bad_transcript)
-        test.benchmark_score = data.get('benchmark_score', test.benchmark_score)
+        test.benchmark_score = data.get(
+            'benchmark_score', test.benchmark_score)
 
         # Save changes
         db.session.commit()
