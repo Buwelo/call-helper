@@ -202,7 +202,7 @@ def generate_highlighted_transcript(user_transcript: str, missed_errors: List[Di
             # Use HTML span with red background for highlighting
             highlighted = highlighted.replace(
                 error["error"],
-                f'<span class="error-highlight" title="Should be: {error["correct"]}">{error["error"]}</span>'
+                f'<span class="bg-red-200 text-red-800 rounded px-1 hover:bg-red-300 cursor-help" title="Should be: {error["correct"]}">{error["error"]}</span>'
             )
 
     return highlighted
