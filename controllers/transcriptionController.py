@@ -58,7 +58,7 @@ def score_transcription(id):
     compare_transcript_result = transcript_compare.compare_transcript_with_errors(
         good_transcript, bad_transcript, user_submitted_transcript)
 
-    logger.info(f"Compare transcript result: {compare_transcript_result}")
+    # logger.info(f"Compare transcript result: {compare_transcript_result}")
     return compare_transcript_result
 
 
