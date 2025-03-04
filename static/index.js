@@ -253,21 +253,81 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="mb-4">
                 <h3 class="text-lg font-semibold">Breakdown:
                 </h3>
-                <div class="mt-2 p-3 bg-gray-700 rounded overflow-auto max-h-60">
-                  <pre class="text-wrap bg-dark-700">${result.readable_diff}</pre>
-                </div>
-              </div>
             `;
           }
         }
 
+        // Display error tracking information if available
+        if (data.error_tracking) {
+          const errorTracking = data.error_tracking;
+
+          scoreHTML += `
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 class="text-xl font-bold text-gray-800 mb-3">Error Correction Results</h3>
+
+              <div class="flex items-center mb-4">
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                  <div class="bg-blue-600 h-4 rounded-full" style="width: ${errorTracking.percentage}%"></div>
+                </div>
+                <span class="ml-3 font-medium">${errorTracking.percentage.toFixed(2)}%</span>
+              </div>
+
+              <p class="text-lg font-medium text-gray-700 mb-2">${errorTracking.message}</p>
+
+              <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="bg-green-100 p-3 rounded-lg">
+                  <p class="text-green-800 font-medium">Corrected Errors</p>
+                  <p class="text-2xl font-bold text-green-700">${errorTracking.corrected_errors}</p>
+                </div>
+                <div class="bg-red-100 p-3 rounded-lg">
+                  <p class="text-red-800 font-medium">Missed Errors</p>
+                  <p class="text-2xl font-bold text-red-700">${errorTracking.missed_errors.length}</p>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <h4 class="font-semibold text-gray-700 mb-2">Missed Errors:</h4>
+                <ul class="list-disc pl-5 space-y-1">
+                  ${errorTracking.missed_errors
+                    .map(
+                      error => `
+                    <li class="text-gray-600">
+                      <span class="font-medium">Error ${error.id}</span>: 
+                      ${
+                        error.type === 'delete'
+                          ? `Missing word "<span class="text-blue-600">${error.correct}</span>"`
+                          : `"<span class="text-red-500">${error.error}</span>" should be "<span class="text-green-500">${error.correct}</span>"`
+                      }
+                    </li>
+                  `
+                    )
+                    .join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+
+          // Add highlighted transcript if available
+          // if (data.highlighted_transcript) {
+          //   scoreHTML += `
+          //     <div class="mt-6">
+          //       <h3 class="text-lg font-semibold mb-2">Highlighted Transcript</h3>
+          //       <div class="p-4 bg-dark border border-gray-200 rounded-lg overflow-auto max-h-96">
+          //         ${data.highlighted_transcript}
+          //       </div>
+          //     </div>
+          //   `;
+          // }
+        }
+
         modal.show();
+
         elements.scoreModalBody.innerHTML = scoreHTML;
       })
       .catch(error => {
-        hideSpinner();
         console.error('Error:', error);
-        alert('Error scoring the transcript. Please try again.');
+        hideSpinner();
+        alert('There was a problem with your submission. Please try again.');
       });
   });
 });

@@ -6,6 +6,7 @@ from flask import Blueprint, Response, render_template, request, redirect, url_f
 from flask_socketio import SocketIO, emit
 from flask_login import login_required, current_user
 from controllers import transcriptionController
+from models.transcript import TranscriptTest
 
 
 transcription = Blueprint('transcription', __name__)
@@ -137,6 +138,17 @@ def create_test():
     if request.method == 'POST':
         return transcriptionController.create_test()
     return render_template('create_test.html')
+
+
+@transcription.route('/edit_test/<int:id>', methods=['GET', 'PATCH'])
+@login_required
+def edit_test(id):
+    if request.method == 'PATCH':
+        return transcriptionController.edit_test(id)
+    elif request.method == 'GET':
+        test_data = TranscriptTest.query.get(
+            id)  # Assuming you have a Test model
+        return render_template('edit_test.html', test=test_data)
 
 
 @transcription.route('/get_tests', methods=['GET'])
