@@ -250,39 +250,79 @@ window.addEventListener('load', function () {
             .map(result => {
               hideSpinner();
 
-              // Extract comparison details
-              const comparisonDetails = result.comparison_details;
-              return `
-              <div class="test-result mb-5">
-                <div class="overall-score text-xl font-bold mb-3">
-                  <h4>Similarity Score: ${comparisonDetails.similarity.toFixed(2)}%</h4>
-                  <p>Total Errors: ${comparisonDetails.total_errors}</p>
-                </div>
-                <div class="comparison-details mt-4">
-                  <h4 class="font-semibold mb-1">Comparison Details:</h4>
-                  <p>${comparisonDetails.message}</p>
-                                    <h3 class="font-semibold mb-1">Breakdown:</h3>
+              // Extract error tracking details
+              const errorTracking = result.error_tracking || {};
+              const missedErrors = errorTracking.missed_errors || [];
 
-                  <div class="readable-diff mt-3 p-3 bg-gray-700 rounded overflow-auto" style="max-height: 300px; white-space: pre-wrap;">
-                    ${comparisonDetails.readable_diff}
+              return `
+          <div class="test-result mb-5">
+            <div class="overall-score text-xl font-bold mb-3">
+              <h4>Percentage Score: ${result.percentage.toFixed(2)}%</h4>
+            </div>
+            
+            <div class="error-tracking mt-4">
+              <h4 class="font-semibold mb-2">Error Correction:</h4>
+              <p class="mb-2">${errorTracking.message || result.message || 'No error tracking data available'}</p>
+              
+              <div class="flex justify-between mb-3">
+                <span>Corrected: ${errorTracking.corrected_errors || result.corrected_errors || 0}</span>
+                <span>Total Errors: ${errorTracking.total_errors || result.total_errors || 0}</span>
+                <span>Success Rate: ${errorTracking.percentage || result.percentage || 0}%</span>
+              </div>
+              
+              ${
+                missedErrors.length > 0
+                  ? `
+                <div class="missed-errors mt-3">
+                  <h5 class="font-semibold">Missed Errors:</h5>
+                  <div class="bg-gray-500 p-3 rounded mt-2 max-h-40 overflow-y-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-gray-200">
+                          <th class="p-2 text-left">ID</th>
+                          <th class="p-2 text-left">Type</th>
+                          <th class="p-2 text-left">Correct Text</th>
+                          <th class="p-2 text-left">Error Text</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${missedErrors
+                          .map(
+                            error => `
+                          <tr class="border-b border-gray-200">
+                            <td class="p-2">${error.id}</td>
+                            <td class="p-2">${error.type}</td>
+                            <td class="p-2 font-medium">${error.correct}</td>
+                            <td class="p-2 text-red-600">${error.error || '(empty)'}</td>
+                          </tr>
+                        `
+                          )
+                          .join('')}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <div class="status mt-4">
-                  <p><strong>Status:</strong> ${comparisonDetails.status}</p>
-                </div>
-              </div>
-            `;
+              `
+                  : ''
+              }
+            </div>
+            
+            <div class="status mt-4">
+              <p><strong>Status:</strong> ${errorTracking.status || result.status || 'Unknown'}</p>
+            </div>
+          </div>
+        `;
             })
             .join('<hr>');
           elements.scoreModalBody.innerHTML = scoreHTML;
         })
-
         .catch(error => {
           console.error('Error submitting transcriptions:', error);
           alert('Error submitting test results. Please try again.');
           hideSpinner();
           elements.nextButton.disabled = false;
         })
+
         .finally(() => {
           state.transcriptions = [];
         });

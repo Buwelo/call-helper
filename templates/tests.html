@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Tests Management</title>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow-md py-4">
+      <div class="container mx-auto px-4">
+        <h1 class="text-2xl font-bold text-gray-800">Tests Management</h1>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-700">Available Tests</h2>
+        <!-- <a
+          href="{{ url_for('transcription.create_test') }}"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+        >
+          Create New Test
+        </a> -->
+      </div>
+
+      {% if tests %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for test in tests %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="p-5">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ test.name_of_test }}</h3>
+            <p class="text-gray-600 mb-4 line-clamp-2">{{ test.test_transcript|truncate(100) }}</p>
+            <div class="flex justify-between items-center">
+              <a
+                href="{{ url_for('transcription.take_test') }}?test_id={{ test.id }}"
+                class="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Take Test
+              </a>
+              <a
+                href="{{ url_for('transcription.edit_test', id=test.id) }}"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-3 rounded"
+              >
+                Edit
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="bg-white rounded-lg shadow-md p-8 text-center">
+        <p class="text-gray-600 text-lg mb-6">No tests available.</p>
+        <a
+          href="{{ url_for('transcription.create_test') }}"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg"
+        >
+          Create Your First Test
+        </a>
+      </div>
+      {% endif %}
+    </main>
+  </body>
+</html>
