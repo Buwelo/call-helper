@@ -59,7 +59,7 @@ def score_transcription(id):
         good_transcript, bad_transcript, user_submitted_transcript)
 
     userResult = UserTranscript(
-        testing_id=id,
+        testing_id=testingId,
         user_transcript=user_submitted_transcript,
         score=json.dumps(compare_transcript_result),
         test_taken=id,
@@ -67,13 +67,13 @@ def score_transcription(id):
         created_at=datetime.now(),
         updated_at=datetime.now(),
         overall_score=compare_transcript_result.get('percentage'),
-        summary=compare_transcript_result.get('summary')
+        summary=compare_transcript_result.get('message'),
     )
     db.session.add(userResult)
     db.session.commit()
 
     logger.info(
-        f"Compare transcript result: {compare_transcript_result.get('percentage')}")
+        f"Compare transcript result: {compare_transcript_result}")
     return compare_transcript_result
 
 

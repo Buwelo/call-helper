@@ -243,7 +243,7 @@ def compare_transcript_with_errors(good_transcript: str, bad_transcript: str, us
         'total_errors': len(introduced_errors),
         'corrected_errors': score_results['corrected_errors'],
         'percentage': score_results['percentage'],
-        'highlighted_transcript': highlighted_transcript,
+        # 'highlighted_transcript': highlighted_transcript,
         'readable_diff': base_comparison['readable_diff'],
         'message': score_results['message']
     }
