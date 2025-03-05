@@ -42,7 +42,7 @@ window.addEventListener('load', function () {
         } else {
           console.log('Audio is playing again, textarea not disabled');
         }
-      }, 8000);
+      }, 15000);
     }
   }
 
