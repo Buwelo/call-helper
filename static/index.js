@@ -211,12 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const testId = elements.testId.value;
     showSpinner();
     fetch(`/transcription/score-transcription/${testId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
       .then(response => {
         console.log(response);
         if (!response.ok) {
@@ -330,4 +330,11 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('There was a problem with your submission. Please try again.');
       });
   });
+
+  document.getElementById('editable-transcript').addEventListener('keyup', function () {
+    // Remove extra spaces (more than one) using regex
+    this.value = this.value.replace(/\s{2,}/g, ' ');
+  });
+
+
 });
