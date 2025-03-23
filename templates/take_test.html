@@ -216,9 +216,27 @@
           });
         }
 
-        document.getElementById('editable-transcript').addEventListener('keyup', function () {
-          // Remove extra spaces (more than one) using regex
-          this.value = this.value.replace(/\s{2,}/g, ' ');
+
+        const textarea = document.getElementById('editable-transcript');
+        textarea.addEventListener('input', function () {
+          // Get the current value of the textarea
+          let text = textarea.value;
+
+          // Split the text into lines
+          let lines = text.split('\n');
+
+          // Process each line individually
+          lines = lines.map(line => {
+            // Remove extra spaces between words and around punctuations within the line
+            return line
+              .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+              .replace(/\s([.,!?;:])/g, '$1') // Remove space before punctuations
+              .replace(/([.,!?;:])\s+/g, '$1 ') // Ensure single space after punctuations
+              .trim(); // Remove leading and trailing spaces
+          });
+
+          // Join the lines back together with line breaks
+          textarea.value = lines.join('\n');
         });
 
         function loadTest(index) {

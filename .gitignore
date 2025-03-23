@@ -118,3 +118,5 @@ dmypy.json
 .pyre/
 .m4a
 .srt
+/static/audio
+/files/
