@@ -42,7 +42,7 @@ window.addEventListener('load', function () {
         } else {
           console.log('Audio is playing again, textarea not disabled');
         }
-      }, 8000);
+      }, 15000);
     }
   }
 
@@ -119,11 +119,6 @@ window.addEventListener('load', function () {
     const currentLines = elements.editableTranscript.value.split('\n');
     const newLines = data.text.split('\n');
 
-    // Filter out duplicate lines
-    const uniqueNewLines = newLines.filter(line => !currentLines.includes(line.trim()));
-
-    // If there are no new unique lines, return early
-    if (uniqueNewLines.length === 0) return;
     // Save current state
     const cursorPosition = elements.editableTranscript.selectionStart;
     const cursorEnd = elements.editableTranscript.selectionEnd;
@@ -131,19 +126,111 @@ window.addEventListener('load', function () {
     const wasAtBottom =
       scrollTop + elements.editableTranscript.clientHeight >= elements.editableTranscript.scrollHeight - 5;
 
-    // Update content
-    let newValue = elements.editableTranscript.value;
-    if (newValue && !newValue.endsWith('\n')) newValue += '\n';
-    newValue += uniqueNewLines.join('\n');
+    // Function to find the best match for a new line
+    const findBestMatch = (newLine, currentLines) => {
+      let bestMatchIndex = -1;
+      let bestMatchScore = 0;
+      currentLines.forEach((currentLine, index) => {
+        const score = similarity(newLine, currentLine);
+        if (score > bestMatchScore) {
+          bestMatchScore = score;
+          bestMatchIndex = index;
+        }
+      });
+      return { index: bestMatchIndex, score: bestMatchScore };
+    };
 
-    elements.editableTranscript.value = newValue;
+    // Function to calculate similarity between two strings
+    const similarity = (s1, s2) => {
+      let longer = s1;
+      let shorter = s2;
+      if (s1.length < s2.length) {
+        longer = s2;
+        shorter = s1;
+      }
+      const longerLength = longer.length;
+      if (longerLength === 0) {
+        return 1.0;
+      }
+      return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    };
+
+    // Function to calculate edit distance between two strings
+    const editDistance = (s1, s2) => {
+      s1 = s1.toLowerCase();
+      s2 = s2.toLowerCase();
+      const costs = [];
+      for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+          if (i === 0) {
+            costs[j] = j;
+          } else if (j > 0) {
+            let newValue = costs[j - 1];
+            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+              newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+            }
+            costs[j - 1] = lastValue;
+            lastValue = newValue;
+          }
+        }
+        if (i > 0) {
+          costs[s2.length] = lastValue;
+        }
+      }
+      return costs[s2.length];
+    };
+
+    // Update content
+    let updatedLines = [...currentLines];
+    newLines.forEach(newLine => {
+      const { index, score } = findBestMatch(newLine, updatedLines);
+      if (score > 0.7) {
+        // Threshold for considering it a match
+        // Merge the new line with the existing line, preserving user input
+        updatedLines[index] = mergeLines(updatedLines[index], newLine);
+      } else {
+        // Add as a new line
+        updatedLines.push(newLine);
+      }
+    });
+
+    // Function to merge two lines, preserving user input
+    const mergeLines = (existingLine, newLine) => {
+      let mergedLine = '';
+      let i = 0,
+        j = 0;
+      while (i < existingLine.length && j < newLine.length) {
+        if (existingLine[i] === newLine[j]) {
+          mergedLine += existingLine[i];
+          i++;
+          j++;
+        } else if (existingLine[i] !== ' ' && newLine[j] === ' ') {
+          // Preserve user input
+          mergedLine += existingLine[i];
+          i++;
+        } else {
+          // Use new line content
+          mergedLine += newLine[j];
+          j++;
+        }
+      }
+      // Append any remaining characters
+      mergedLine += existingLine.slice(i) + newLine.slice(j);
+      return mergedLine;
+    };
+
+    elements.editableTranscript.value = updatedLines.join('\n');
 
     // Restore cursor position or keep at end
-    if (cursorPosition !== elements.editableTranscript.value.length - data.text.length - 1) {
+    if (cursorPosition !== elements.editableTranscript.value.length) {
       elements.editableTranscript.setSelectionRange(cursorPosition, cursorEnd);
       elements.editableTranscript.scrollTop = scrollTop;
     } else {
-      elements.editableTranscript.setSelectionRange(newValue.length, newValue.length);
+      elements.editableTranscript.setSelectionRange(
+        elements.editableTranscript.value.length,
+        elements.editableTranscript.value.length
+      );
       if (wasAtBottom) {
         elements.editableTranscript.scrollTop = elements.editableTranscript.scrollHeight;
       }

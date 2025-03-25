@@ -45,6 +45,11 @@ def preprocess_transcript(transcript):
 
     return transcript
 
+def extract_words_and_punctuation(text: str) -> List[str]:
+    """
+    Extract words and punctuation as separate tokens.
+    """
+    return re.findall(r'\w+|[^\w\s]', text)
 
 def generate_introduced_errors(good_transcript: str, bad_transcript: str) -> List[TranscriptError]:
     """
@@ -232,7 +237,7 @@ def compare_transcript_with_errors(good_transcript: str, bad_transcript: str, us
     highlighted_transcript = generate_highlighted_transcript(
         user_transcript, score_results['missed_errors'])
 
-    # Get detailed diff using your existing method
+    # Get detailed diff using the modified compare_transcript method
     base_comparison = compare_transcript(good_transcript, user_transcript)
 
     # Combine the results
@@ -243,38 +248,39 @@ def compare_transcript_with_errors(good_transcript: str, bad_transcript: str, us
         'total_errors': len(introduced_errors),
         'corrected_errors': score_results['corrected_errors'],
         'percentage': score_results['percentage'],
-        # 'highlighted_transcript': highlighted_transcript,
+        'punctuation_errors': base_comparison.get('punctuation_errors', 0),  # Use .get() with a default value
         'readable_diff': base_comparison['readable_diff'],
-        'message': score_results['message']
+        'message': f"{score_results['message']} Punctuation errors: {base_comparison.get('punctuation_errors', 0)}"
     }
 
 # Your existing compare_transcript function (with slight modifications)
 
 
-def compare_transcript(good_transcript, user_transcript):
-    """Original difflib-based transcript comparison"""
+def compare_transcript(good_transcript: str, user_transcript: str) -> Dict[str, Any]:
+    """Difflib-based transcript comparison with punctuation handling"""
     good_transcript = preprocess_transcript(good_transcript)
     user_transcript = preprocess_transcript(user_transcript)
 
-    # Split into words for comparison
-    good_words = good_transcript.split()
-    user_words = user_transcript.split()
+    # Extract words and punctuation
+    good_tokens = extract_words_and_punctuation(good_transcript)
+    user_tokens = extract_words_and_punctuation(user_transcript)
 
-    logger.info(f'Good words count: {len(good_words)}')
-    logger.info(f'User words count: {len(user_words)}')
+    logger.info(f'Good token count: {len(good_tokens)}')
+    logger.info(f'User token count: {len(user_tokens)}')
 
-    if good_words == user_words:
+    if good_tokens == user_tokens:
         return {
             'status': 'identical',
             'message': 'Transcripts are identical',
             'diff': '',
             'readable_diff': 'No differences found.',
             'total_errors': 0,
+            'punctuation_errors': 0,
             'similarity': 100
         }
 
-    # Use difflib to compare the words
-    matcher = difflib.SequenceMatcher(None, good_words, user_words)
+    # Use difflib to compare the tokens
+    matcher = difflib.SequenceMatcher(None, good_tokens, user_tokens)
 
     # Calculate similarity ratio
     similarity = matcher.ratio() * 100
@@ -282,39 +288,49 @@ def compare_transcript(good_transcript, user_transcript):
     # Generate a readable diff
     readable_diff = []
     error_count = 0
+    punctuation_error_count = 0
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == 'equal':
-            readable_diff.append(f"MATCH: {' '.join(good_words[i1:i2])}")
+            readable_diff.append(f"MATCH: {' '.join(good_tokens[i1:i2])}")
             readable_diff.append("")
         elif tag == 'replace':
             error_count += max(i2 - i1, j2 - j1)
+            if any(not token.isalnum() for token in good_tokens[i1:i2] + user_tokens[j1:j2]):
+                punctuation_error_count += 1
             readable_diff.append(
-                f"REPLACE: '{' '.join(good_words[i1:i2])}' -> '{' '.join(user_words[j1:j2])}'")
+                f"REPLACE: '{' '.join(good_tokens[i1:i2])}' -> '{' '.join(user_tokens[j1:j2])}'")
             readable_diff.append("")
         elif tag == 'delete':
             error_count += (i2 - i1)
-            readable_diff.append(f"DELETE: '{' '.join(good_words[i1:i2])}'")
+            if any(not token.isalnum() for token in good_tokens[i1:i2]):
+                punctuation_error_count += 1
+            readable_diff.append(f"DELETE: '{' '.join(good_tokens[i1:i2])}'")
             readable_diff.append("")
         elif tag == 'insert':
             error_count += (j2 - j1)
-            readable_diff.append(f"INSERT: '{' '.join(user_words[j1:j2])}'")
+            if any(not token.isalnum() for token in user_tokens[j1:j2]):
+                punctuation_error_count += 1
+            readable_diff.append(f"INSERT: '{' '.join(user_tokens[j1:j2])}'")
             readable_diff.append("")
 
     readable_diff_str = "\n".join(readable_diff)
 
     # Create a more detailed diff for debugging
-    diff = difflib.ndiff(good_words, user_words)
+    diff = difflib.ndiff(good_tokens, user_tokens)
     diff_str = '\n'.join(diff)
 
     return {
         'status': 'different',
-        'message': f'Found {error_count} differences between transcripts (Similarity: {similarity:.2f}%)',
+        'message': f'Found {error_count} differences between transcripts (Similarity: {similarity:.2f}%). '
+                   f'Punctuation errors: {punctuation_error_count}',
         'diff': diff_str,
         'readable_diff': readable_diff_str,
         'total_errors': error_count,
+        'punctuation_errors': punctuation_error_count,
         'similarity': similarity
     }
+
 
 
 # Example usage:
