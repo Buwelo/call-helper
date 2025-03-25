@@ -216,10 +216,6 @@
           });
         }
 
-        document.getElementById('editable-transcript').addEventListener('keyup', function () {
-          // Remove extra spaces (more than one) using regex
-          this.value = this.value.replace(/\s{2,}/g, ' ');
-        });
 
         function loadTest(index) {
           if (index < tests.length) {

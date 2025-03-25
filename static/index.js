@@ -418,10 +418,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
-  document.getElementById('editable-transcript').addEventListener('keyup', function () {
-    // Remove extra spaces (more than one) using regex
-    this.value = this.value.replace(/\s{2,}/g, ' ');
-  });
+  // document.getElementById('editable-transcript').addEventListener('keyup', function () {
+  //   // Remove extra spaces (more than one) using regex
+  //   this.value = this.value.replace(/\s{2,}/g, ' ');
+  // });
 
 
 });
