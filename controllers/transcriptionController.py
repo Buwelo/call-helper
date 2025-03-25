@@ -29,31 +29,31 @@ def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
         scoring_function_eval = str(scoring_function_eval)
         
         example_evaluation = {
-    "corrected_errors": 1,
-    "error_tracking": {
-        "corrected_errors": 1,
-        "message": "Found and fixed 1 out of 2 intentional errors (50.00%)",
-        "missed_errors": [
-            {
-                "correct": "little tiny thing.",
-                "error": "little.",
-                "id": "E2",
-                "type": "replace"
-            }
-        ],
-        "percentage": 50,
-        "similarity": 99.02,
-        "status": "success",
-        "total_errors": 2
-    },
-    "message": "Found and fixed 1 out of 2 intentional errors (50.00%) Punctuation errors: 1",
-    "percentage": 50,
-    "punctuation_errors": 1,
-    "readable_diff": "MATCH: out in the garden\n\nDELETE: ','\n\nMATCH: mary sat hemming a pocket handkerchief , and there came a little insect running , oh , in such a hurry , across the small stone table by her side . the sewing was done , for mary liked doing nothing best , and she thought it would be fun to drop her thimble over the little ant . now he is in the dark , said she , keep in mind he is only such a little\n\nDELETE: 'tiny thing'\n\nMATCH: . mary ran away , for her mother called her , and she forgot all about the ant under the thimble . there he was , running round and round and round the dark prison , with little horns on his head , quivering , little perfect legs bending as beautifully as those of a racehorse , and he was in quite as big a fright as if he were an elephant . oh , you would have heard him say , if you had been clever enough , i can ' t get out , i can ' t get out , i shall lie down and die . mary went to bed , and in the night the rain poured , the handkerchief was soaked as if somebody had been crying very much . when she went out to fetch it as soon as the sun shone , she remembered who was under the thimble . i wonder what he is doing , said mary , but when she lifted up the thimble , the little tiny thing lay stiff and still . oh , did he die of being under the thimble , said she aloud , i am afraid he did mine . why did you do that , mary , said her father , who was close by and who had guessed the truth . see , he moved one of his legs . run to the house and fetch a wee taste of honey from the breakfast table for the little thing you starved . i didn ' t mean to , said mary . she touched the honey in the spoon .\n",
-    "similarity": 99.58620689655172,
-    "status": "success",
-    "total_errors": 2
-}
+                            "corrected_errors": 1,
+                            "error_tracking": {
+                                "corrected_errors": 1,
+                                "message": "Found and fixed 1 out of 2 intentional errors (50.00%)",
+                                "missed_errors": [
+                                    {
+                                        "correct": "little tiny thing.",
+                                        "error": "little.",
+                                        "id": "E2",
+                                        "type": "replace"
+                                    }
+                                ],
+                                "percentage": 50,
+                                "similarity": 99.02,
+                                "status": "success",
+                                "total_errors": 2
+                            },
+                            "message": "Found and fixed 1 out of 2 intentional errors (50.00%) Punctuation errors: 1",
+                            "percentage": 50,
+                            "punctuation_errors": 1,
+                            "readable_diff": "MATCH: out in the garden\n\nDELETE: ','\n\nMATCH: mary sat hemming a pocket handkerchief , and there came a little insect running , oh , in such a hurry , across the small stone table by her side . the sewing was done , for mary liked doing nothing best , and she thought it would be fun to drop her thimble over the little ant . now he is in the dark , said she , keep in mind he is only such a little\n\nDELETE: 'tiny thing'\n\nMATCH: . mary ran away , for her mother called her , and she forgot all about the ant under the thimble . there he was , running round and round and round the dark prison , with little horns on his head , quivering , little perfect legs bending as beautifully as those of a racehorse , and he was in quite as big a fright as if he were an elephant . oh , you would have heard him say , if you had been clever enough , i can ' t get out , i can ' t get out , i shall lie down and die . mary went to bed , and in the night the rain poured , the handkerchief was soaked as if somebody had been crying very much . when she went out to fetch it as soon as the sun shone , she remembered who was under the thimble . i wonder what he is doing , said mary , but when she lifted up the thimble , the little tiny thing lay stiff and still . oh , did he die of being under the thimble , said she aloud , i am afraid he did mine . why did you do that , mary , said her father , who was close by and who had guessed the truth . see , he moved one of his legs . run to the house and fetch a wee taste of honey from the breakfast table for the little thing you starved . i didn ' t mean to , said mary . she touched the honey in the spoon .\n",
+                            "similarity": 99.58620689655172,
+                            "status": "success",
+                            "total_errors": 2
+                        }
         converted_example_evaluation = json.dumps(example_evaluation)
         try:
             response = client.chat.completions.create(
@@ -77,7 +77,7 @@ def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
                                                         Based on this information, provide your analysis and any score adjustments."""},
                     {"role": "user", "content": f"Compare the following user transcript to the correct transcript and provide feedback. User transcript: {user_transcript}. Correct transcript: {correct_transcript}. Initial score evaluation: {scoring_function_eval}"}
                 ],
-                temperature=0.7,
+                temperature=0.0,
                 max_tokens=300,
                 top_p=1.0,
                 frequency_penalty=0.0,
