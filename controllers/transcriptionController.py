@@ -59,22 +59,29 @@ def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": f"""You are an AI assistant tasked with evaluating and potentially adjusting scores based on user transcripts. Here's what you need to do:
-                                                        1. Compare the user's transcript, correct_transcript and evaluation from the scoring program.
-                                                        2. The evaluation is a result of a scoring program. Here's an example of an evaluation for a user's transcript: {converted_example_evaluation}.
-                                                        3. Your response should include:
-                                                        - An adjusted score (either the same as the original from the evaluation or different if adjusted).
-                                                        - A brief summary explaining what triggered any adjustments.
+                    {"role": "system", "content": f"""You are an AI assistant tasked with evaluating and potentially adjusting scores based on user transcripts. This review is necessary because the scoring system is not always able to catch punctuation corrections.
+                    Here's what you need to do:
 
-                                                        Please analyze the following:
-                                                        the following user transcript:
-                                                        {user_transcript},
-                                                        the following correct transcript:
-                                                        {correct_transcript},
-                                                        the following evaluation:
-                                                        {scoring_function_eval}
+                    Please analyze the following:
+                    the following user transcript:
+                    {user_transcript},
+                    the following correct transcript:
+                    {correct_transcript},
+                    the following evaluation:
+                    {scoring_function_eval}
+                    
+                    1. Compare the user's transcript, correct_transcript and evaluation from the scoring program and  Identify all intentional errors in the original text against the correct_transcript.
+                    2. The evaluation is a result of a scoring program. Here's an example of an evaluation for a user's transcript: {converted_example_evaluation}.
+                        - Mark as Correct Fix, if it matches the expected correction.
+                        - Mark as Missed Error, if the user did not correct it.
+                        - Mark as Incorrect Fix, if the user made a different, incorrect correction.
+                    3. Provide an updated score based on the correctly fixed errors, Your response should include:
+                        - An adjusted score (either the same as the original from the evaluation or different if adjusted).
+                        - A brief summary explaining what triggered any adjustments.
+                    4. Ensure the output reflects both accuracy and missed errors.
 
-                                                        Based on this information, provide your analysis and any score adjustments."""},
+
+                    Based on this information, provide your analysis and any score adjustments."""},
                     {"role": "user", "content": f"Compare the following user transcript to the correct transcript and provide feedback. User transcript: {user_transcript}. Correct transcript: {correct_transcript}. Initial score evaluation: {scoring_function_eval}"}
                 ],
                 temperature=0.0,
