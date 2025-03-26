@@ -77,7 +77,8 @@ def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
                         - Mark as Incorrect Fix, if the user made a different, incorrect correction.
                     3. Provide an updated score based on the correctly fixed errors, Your response should include:
                         - An adjusted score (either the same as the original from the evaluation or different if adjusted).
-                        - A brief summary explaining what triggered any adjustments.
+                        - A brief summary explaining what triggered any adjustments in no more than 30 words.
+                        - Response should be valid html snippet formatted with tailwind.
                     4. Ensure the output reflects both accuracy and missed errors.
 
                     Based on this information, provide your analysis and any score adjustments."""},
@@ -131,7 +132,6 @@ def score_transcription(id):
         good_transcript, bad_transcript, user_submitted_transcript)
     
     aiEvaluation_result = aiEvaluation( user_submitted_transcript, good_transcript, compare_transcript_result) 
-    # TODO if given the nod, save AI info in database
     
     logger.info(f"AI evaluation result: {aiEvaluation_result}")
 
@@ -149,14 +149,12 @@ def score_transcription(id):
     db.session.add(userResult)
     db.session.commit()
 
-    combined_result = {
-        "compare_result": compare_transcript_result,
-        "ai_evaluation": aiEvaluation_result
-    }
     logger.info(
         f"Compare transcript result: {compare_transcript_result}")
-    return combined_result
-# TODO fix combined response to ui
+    compare_transcript_result['aiEvaluation'] = aiEvaluation_result
+    return compare_transcript_result
+
+
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
 AUDIO_UPLOAD_FOLDER = os.path.abspath('static/audio')  # Or your desired path
