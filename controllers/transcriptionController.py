@@ -80,7 +80,6 @@ def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
                         - A brief summary explaining what triggered any adjustments.
                     4. Ensure the output reflects both accuracy and missed errors.
 
-
                     Based on this information, provide your analysis and any score adjustments."""},
                     {"role": "user", "content": f"Compare the following user transcript to the correct transcript and provide feedback. User transcript: {user_transcript}. Correct transcript: {correct_transcript}. Initial score evaluation: {scoring_function_eval}"}
                 ],
@@ -131,7 +130,8 @@ def score_transcription(id):
     compare_transcript_result = transcript_compare.compare_transcript_with_errors(
         good_transcript, bad_transcript, user_submitted_transcript)
     
-    aiEvaluation_result = aiEvaluation( user_submitted_transcript, good_transcript, compare_transcript_result)
+    aiEvaluation_result = aiEvaluation( user_submitted_transcript, good_transcript, compare_transcript_result) 
+    # TODO if given the nod, save AI info in database
     
     logger.info(f"AI evaluation result: {aiEvaluation_result}")
 
@@ -149,10 +149,14 @@ def score_transcription(id):
     db.session.add(userResult)
     db.session.commit()
 
+    combined_result = {
+        "compare_result": compare_transcript_result,
+        "ai_evaluation": aiEvaluation_result
+    }
     logger.info(
         f"Compare transcript result: {compare_transcript_result}")
-    return compare_transcript_result
-
+    return combined_result
+# TODO fix combined response to ui
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
 AUDIO_UPLOAD_FOLDER = os.path.abspath('static/audio')  # Or your desired path
