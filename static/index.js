@@ -373,6 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
 
               <div class="mt-4">
+                <h4 class="font-semibold text-gray-700 mb-2">AI Evaluation:</h4>
+                <p class="text-lg font-medium text-gray-700 mb-2">AI Evaluation: ${data.aiEvaluation}</p>
                 <h4 class="font-semibold text-gray-700 mb-2">Missed Errors:</h4>
                 <ul class="list-disc pl-5 space-y-1">
                   ${errorTracking.missed_errors

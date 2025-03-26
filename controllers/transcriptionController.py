@@ -22,7 +22,80 @@ client = OpenAI()
 
 # id will be used to get the correct transcript from the database to compare
 
+def aiEvaluation(user_transcript, correct_transcript, scoring_function_eval):
+        """
+        Evaluates a user's transcript to provide additional feedback and a possible score adjustment.
+        """
+        scoring_function_eval = str(scoring_function_eval)
+        
+        example_evaluation = {
+                            "corrected_errors": 1,
+                            "error_tracking": {
+                                "corrected_errors": 1,
+                                "message": "Found and fixed 1 out of 2 intentional errors (50.00%)",
+                                "missed_errors": [
+                                    {
+                                        "correct": "little tiny thing.",
+                                        "error": "little.",
+                                        "id": "E2",
+                                        "type": "replace"
+                                    }
+                                ],
+                                "percentage": 50,
+                                "similarity": 99.02,
+                                "status": "success",
+                                "total_errors": 2
+                            },
+                            "message": "Found and fixed 1 out of 2 intentional errors (50.00%) Punctuation errors: 1",
+                            "percentage": 50,
+                            "punctuation_errors": 1,
+                            "readable_diff": "MATCH: out in the garden\n\nDELETE: ','\n\nMATCH: mary sat hemming a pocket handkerchief , and there came a little insect running , oh , in such a hurry , across the small stone table by her side . the sewing was done , for mary liked doing nothing best , and she thought it would be fun to drop her thimble over the little ant . now he is in the dark , said she , keep in mind he is only such a little\n\nDELETE: 'tiny thing'\n\nMATCH: . mary ran away , for her mother called her , and she forgot all about the ant under the thimble . there he was , running round and round and round the dark prison , with little horns on his head , quivering , little perfect legs bending as beautifully as those of a racehorse , and he was in quite as big a fright as if he were an elephant . oh , you would have heard him say , if you had been clever enough , i can ' t get out , i can ' t get out , i shall lie down and die . mary went to bed , and in the night the rain poured , the handkerchief was soaked as if somebody had been crying very much . when she went out to fetch it as soon as the sun shone , she remembered who was under the thimble . i wonder what he is doing , said mary , but when she lifted up the thimble , the little tiny thing lay stiff and still . oh , did he die of being under the thimble , said she aloud , i am afraid he did mine . why did you do that , mary , said her father , who was close by and who had guessed the truth . see , he moved one of his legs . run to the house and fetch a wee taste of honey from the breakfast table for the little thing you starved . i didn ' t mean to , said mary . she touched the honey in the spoon .\n",
+                            "similarity": 99.58620689655172,
+                            "status": "success",
+                            "total_errors": 2
+                        }
+        converted_example_evaluation = json.dumps(example_evaluation)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": f"""You are an AI assistant tasked with evaluating and potentially adjusting scores based on user transcripts. This review is necessary because the scoring system is not always able to catch punctuation corrections.
+                    Here's what you need to do:
 
+                    Please analyze the following:
+                    the following user transcript:
+                    {user_transcript},
+                    the following correct transcript:
+                    {correct_transcript},
+                    the following evaluation:
+                    {scoring_function_eval}
+                    
+                    1. Compare the user's transcript, correct_transcript and evaluation from the scoring program and  Identify all intentional errors in the original text against the correct_transcript.
+                    2. The evaluation is a result of a scoring program. Here's an example of an evaluation for a user's transcript: {converted_example_evaluation}.
+                        - Mark as Correct Fix, if it matches the expected correction.
+                        - Mark as Missed Error, if the user did not correct it.
+                        - Mark as Incorrect Fix, if the user made a different, incorrect correction.
+                    3. Provide an updated score based on the correctly fixed errors, Your response should include:
+                        - An adjusted score (either the same as the original from the evaluation or different if adjusted).
+                        - A brief summary explaining what triggered any adjustments in no more than 30 words.
+                        - Response should be valid html snippet formatted with tailwind.
+                    4. Ensure the output reflects both accuracy and missed errors.
+
+                    Based on this information, provide your analysis and any score adjustments."""},
+                    {"role": "user", "content": f"Compare the following user transcript to the correct transcript and provide feedback. User transcript: {user_transcript}. Correct transcript: {correct_transcript}. Initial score evaluation: {scoring_function_eval}"}
+                ],
+                temperature=0.0,
+                max_tokens=300,
+                top_p=1.0,
+                frequency_penalty=0.0,
+                presence_penalty=0.0
+            )
+            ai_response = response.choices[0].message.content
+            return ai_response
+        except Exception as e:
+            logger.error(f"Error in AI evaluation: {str(e)}")
+            return "Error in AI evaluation"
+    
 def score_transcription(id):
     """
     Scores a user-submitted transcript against a correct transcript from the database.
@@ -57,6 +130,10 @@ def score_transcription(id):
 
     compare_transcript_result = transcript_compare.compare_transcript_with_errors(
         good_transcript, bad_transcript, user_submitted_transcript)
+    
+    aiEvaluation_result = aiEvaluation( user_submitted_transcript, good_transcript, compare_transcript_result) 
+    
+    logger.info(f"AI evaluation result: {aiEvaluation_result}")
 
     userResult = UserTranscript(
         testing_id=testingId,
@@ -74,7 +151,9 @@ def score_transcription(id):
 
     logger.info(
         f"Compare transcript result: {compare_transcript_result}")
+    compare_transcript_result['aiEvaluation'] = aiEvaluation_result
     return compare_transcript_result
+
 
 
 SRT_UPLOAD_FOLDER = os.path.abspath('files')  # Or your desired path
